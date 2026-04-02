@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FFB7B2">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Seoul TA">
+<title>Seoul Travel Assistant</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<style>
+:root {
+  --primary: #FFB7B2; 
+  --primary-dark: #E2958F;
+  --bg-color: #FDFBF7; 
+  --grid-color: #EFECE5;
+  --surface: #FFFFFF;
+  --text-main: #4A4643;
+  --text-sub: #8C867E;
+  --border: #E8E4DB;
+  
+  --color-attr: #B5EAD7; 
+  --color-rest: #FFDAC1; 
+  --color-trans: #C7CEEA; 
+  --color-hotel: #E2F0CB; 
+
+  --radius-lg: 20px;
+  --radius: 12px;
+  --font: 'Noto Sans TC', sans-serif;
+  --font-serif: 'Noto Serif TC', serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body { 
+  font-family: var(--font); 
+  background-color: var(--bg-color);
+  background-image: radial-gradient(var(--grid-color) 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+  color: var(--text-main); 
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
+}
+
+#app { padding-bottom: 32px; min-height: 100vh; overflow-x: hidden;}
+.page { display: none; padding: 0 20px 20px; max-width: 520px; margin: 0 auto; }
+.page.active { display: block; animation: fadeIn 0.3s ease; }
+
+/* 定義通用的淡入動畫，用於切換頁面與切換行程卡片 */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 頂部 Header */
+.page-header { position: sticky; top: 0; z-index: 50; padding: 24px 0 16px; margin: 0 -20px; padding-left: 20px; padding-right: 20px; background: linear-gradient(to bottom, var(--bg-color) 80%, transparent); display: flex; align-items: flex-start; gap: 12px; }
+.page-title { font-family: var(--font-serif); font-size: 24px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+
+/* 卡片與 HERO */
+.photo-card { background: var(--surface); border-radius: var(--radius-lg); padding: 16px; border: 2px solid var(--border); box-shadow: 4px 4px 0px rgba(0,0,0,0.03); margin-bottom: 16px; position: relative;}
+.hero-card { display: flex; justify-content: space-between; align-items: center; background: var(--text-main); color: #fff; border: none; }
+.hero-left .hero-title { font-family: var(--font-serif); font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.hero-left .hero-date { font-size: 13px; opacity: 0.8; }
+.hero-right { text-align: right; }
+.hero-right .hero-num { font-size: 72px; font-weight: 700; line-height: 1; font-family: var(--font-serif); }
+.hero-right .hero-label { font-size: 12px; margin-top: 4px; opacity: 0.7; }
+
+/* 行程日期專屬觸控區塊：扮演橋樑角色 */
+#itinerary-date-area { padding-top: 4px; }
+
+/* 橫向滑動日期選單 (Tabs) */
+.date-tabs { display: flex; overflow-x: auto; gap: 12px; padding: 4px 0 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; margin: 0 -20px 16px; padding-left: 20px; padding-right: 20px; scroll-behavior: smooth; }
+.date-tabs::-webkit-scrollbar { display: none; }
+.date-tab { flex-shrink: 0; padding: 12px 16px; border-radius: 16px; background: var(--surface); border: 2px solid var(--border); text-align: center; scroll-snap-align: center; cursor: pointer; transition: all 0.2s; min-width: 90px; box-shadow: 2px 4px 12px rgba(0,0,0,0.02); }
+.date-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255, 183, 178, 0.4); }
+.tab-title { font-size: 11px; font-weight: 700; opacity: 0.8; margin-bottom: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
+.tab-val { font-size: 16px; font-weight: 700; font-family: var(--font-serif); }
+
+/* 行程卡片與左滑刪除背景 */
+.event-wrapper { position: relative; margin-bottom: 12px; border-radius: 16px; overflow: hidden; background: #FF3B30; }
+.delete-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 700; gap: 4px; }
+.event-card { background: var(--surface); border: 2px solid var(--border); border-radius: 16px; padding: 16px; display: flex; gap: 12px; position: relative; z-index: 1; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); cursor: grab; }
+.event-card[data-type="景點"] { border-left: 6px solid var(--color-attr); }
+.event-card[data-type="餐廳"] { border-left: 6px solid var(--color-rest); }
+.event-card[data-type="交通"] { border-left: 6px solid var(--color-trans); }
+.event-card[data-type="住宿"] { border-left: 6px solid var(--color-hotel); }
+.event-time { font-size: 13px; font-weight: 700; color: var(--primary-dark); min-width: 44px; }
+.event-body { flex: 1; min-width: 0; pointer-events: none;}
+.event-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.event-note { font-size: 13px; color: var(--text-sub); line-height: 1.5; margin-bottom: 10px; }
+.sortable-ghost .event-card { opacity: 0.7; transform: scale(0.98); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+
+/* 記帳列表與膠囊按鈕 */
+.exp-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px dashed var(--border); }
+.exp-info { display: flex; flex-direction: column; gap: 4px; }
+.exp-title { font-size: 15px; font-weight: 700; }
+.exp-meta { font-size: 12px; color: var(--text-sub); display: flex; gap: 8px; align-items: center; }
+.exp-amount { font-size: 16px; font-weight: 700; text-align: right; }
+.tax-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
+.tax-green { background: #E8F5E9; color: #34C759; border: 1px solid #C8E6C9; }
+.tax-orange { background: #FFF3E0; color: #E65100; border: 1px solid #FFE0B2; }
+.pill-group { display: flex; gap: 8px; }
+.pill-btn { flex: 1; padding: 10px 0; border-radius: 8px; border: 2px solid transparent; background: var(--grid-color); color: var(--text-sub); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.pill-btn.active { background: var(--surface); border-color: var(--primary); color: var(--primary-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+/* 工具頁面特定樣式 */
+.tool-section { background: var(--surface); border: 2px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+.tool-header { background: var(--grid-color); padding: 12px 16px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.tool-body { padding: 16px; }
+.info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; }
+.info-row span:last-child { font-weight: 700; text-align: right;}
+.emergency-btn { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #FFF5F5; border: 1px solid #FFE3E3; border-radius: 10px; color: #D63031; text-decoration: none; font-weight: 700; margin-bottom: 8px; }
+.drive-btn { background: var(--grid-color); color: var(--text-main); padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; width: 100%; margin-top: 8px; }
+
+/* 表單與通用元素 */
+input, select, textarea { font-family: var(--font); font-size: 14px; color: var(--text-main); background: var(--grid-color); border: 2px solid transparent; border-radius: 10px; padding: 12px; width: 100%; outline: none; transition: all 0.2s; }
+input:focus, select:focus, textarea:focus { border-color: var(--primary); background: var(--surface); }
+label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: block; margin-bottom: 6px; }
+.form-group { margin-bottom: 16px; }
+.row { display: flex; gap: 12px; }
+.row > * { flex: 1; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 20px; border-radius: var(--radius); border: none; cursor: pointer; font-family: var(--font); font-size: 14px; font-weight: 700; transition: all 0.15s; }
+.btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(255, 183, 178, 0.4); }
+.btn-primary:active { transform: scale(0.96); background: var(--primary-dark); }
+.btn-ghost { background: var(--grid-color); color: var(--text-main); }
+
+/* FAB 按鈕 */
+.fab { position: fixed; right: 24px; bottom: 32px; width: 56px; height: 56px; border-radius: 28px; background: var(--text-main); color: #fff; border: none; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.15); z-index: 80; font-size: 28px; transition: transform 0.2s; }
+.fab:active { transform: scale(0.9); }
+
+/* Modal 覆蓋層 */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 200; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg-color); border-radius: 24px 24px 0 0; padding: 24px 20px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.toast { position: fixed; top: 40px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--text-main); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 700; z-index: 300; opacity: 0; transition: all 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.empty { text-align: center; padding: 48px 20px; color: var(--text-sub); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="page-home" class="page active">
+  <div class="page-header" style="justify-content: space-between; align-items: center;">
+    <div>
+      <div class="page-title">✨ 韓國旅行手帳</div>
+      <div style="font-size: 13px; color: var(--text-sub); margin-top: 4px;">Seoul Trip 2026</div>
+    </div>
+  </div>
+  
+  <div class="photo-card hero-card">
+    <div class="hero-left">
+      <div class="hero-title">準備出發！</div>
+      <div class="hero-date" id="trip-date-display">讀取中...</div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-num" id="countdown-num">-</div>
+      <div class="hero-label" id="countdown-label">Days Left</div>
+    </div>
+  </div>
+
+  <div class="photo-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <div style="font-weight: 700; display: flex; align-items: center; gap: 8px;">⚙️ 旅行基礎設定</div>
+      <div style="display: flex; gap: 8px;">
+        <button onclick="goTo('itinerary')" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 12px; font-size:18px; cursor:pointer;" title="每日行程">🗓️</button>
+        <button onclick="goTo('expense')" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 12px; font-size:18px; cursor:pointer;" title="旅費記帳">💸</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group"><label>出發日期</label><input type="date" id="trip-start" onchange="handleSettingsChange()"></div>
+      <div class="form-group"><label>回程日期</label><input type="date" id="trip-end" onchange="handleSettingsChange()"></div>
+    </div>
+    <div class="form-group"><label>匯率預設 (NT$ 1 = ₩)</label><input type="number" id="trip-rate" placeholder="46.3" step="0.1" oninput="saveSettings()"></div>
+  </div>
+
+  <div style="margin-top: 32px; margin-bottom: 16px; font-size: 18px; font-weight: 700; font-family: var(--font-serif);">🧰 必備工具箱</div>
+  
+  <div class="tool-section">
+    <div class="tool-header">✈️ 航班資訊 (範例)</div>
+    <div class="tool-body">
+      <div class="info-row"><span>去程航班</span><span>BR170 (長榮)</span></div>
+      <div class="info-row"><span>起飛時間</span><span>05/08 07:30 (TPE)</span></div>
+      <div class="info-row"><span>抵達時間</span><span>05/08 11:05 (ICN)</span></div>
+      <div class="info-row" style="border:none; margin-bottom:0;"><span>訂位代號</span><span style="color:var(--primary-dark)">YXT89Q</span></div>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <div class="tool-header">🏨 住宿資訊</div>
+    <div class="tool-body">
+      <div class="info-row"><span>飯店名稱</span><span>弘大美居大使酒店</span></div>
+      <div class="info-row"><span>入住日期</span><span>05/08 - 05/13</span></div>
+      <div class="info-row" style="border:none; margin-bottom:0;"><span>地址</span><span>서울 마포구 양화로 144</span></div>
+      <a href="https://map.naver.com/v5/search/서울 마포구 양화로 144" target="_blank" class="drive-btn">🚗 導航回飯店</a>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <div class="tool-header">🚨 緊急聯絡</div>
+    <div class="tool-body">
+      <a href="tel:112" class="emergency-btn"><span>🚓 警察局</span><span>112</span></a>
+      <a href="tel:119" class="emergency-btn"><span>🚑 消防與救護車</span><span>119</span></a>
+      <a href="tel:1330" class="emergency-btn" style="background: #F4F6F8; border-color: #E2E8F0; color: var(--text-main);"><span>🗣️ 韓國旅遊諮詢 (有中文)</span><span>1330</span></a>
+    </div>
+  </div>
+</div>
+
+<div id="page-itinerary" class="page">
+  <div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <div>
+        <div class="page-title">🗓️ 每日行程</div>
+        <div style="font-size: 12px; color: var(--text-sub); margin-top: 4px;">按住卡片即可拖拉排序，向左滑動刪除</div>
+      </div>
+      <div style="font-size: 24px; opacity: 0.3;">⇦ ⇨</div>
+    </div>
+  </div>
+  
+  <div id="itinerary-date-area">
+    <div class="date-tabs" id="itinerary-tabs"></div>
+    <div id="itinerary-list"></div>
+    <div id="itinerary-empty" class="empty" style="display:none"><div class="empty-icon">📂</div><div>該時段尚未新增行程</div></div>
+  </div>
+</div>
+
+<div id="page-expense" class="page">
+  <div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <div>
+        <div class="page-title">💸 旅費記帳</div>
+        <div style="font-size: 12px; color: var(--text-sub); margin-top: 4px;">掌握預算，買好買滿</div>
+      </div>
+      <div style="font-size: 24px; opacity: 0.3;">⇨</div>
+    </div>
+  </div>
+  <div class="photo-card">
+    <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 8px;">
+      <span id="budget-title">預算 NT$ 0</span>
+      <span id="budget-left">剩餘 NT$ 0</span>
+    </div>
+    <div style="height: 8px; background: var(--grid-color); border-radius: 4px; overflow: hidden; margin-bottom: 20px;">
+      <div id="budget-fill" style="height: 100%; background: var(--primary-dark); width: 0%; transition: width 0.3s;"></div>
+    </div>
+    <div style="text-align: center; margin-top: 16px;">
+      <div style="font-size: 13px; color: var(--text-sub);">已花費總計</div>
+      <div style="font-size: 32px; font-weight: 700; color: var(--primary-dark); margin: 4px 0; font-family: var(--font-serif);" id="total-twd">NT$ 0</div>
+    </div>
+  </div>
+  <div id="expense-list" style="padding: 0 8px;"></div>
+  <div id="expense-empty" class="empty" style="display:none"><div class="empty-icon">🧾</div><div>尚未新增任何花費</div></div>
+</div>
+
+</div>
+
+<button class="fab" id="main-fab" onclick="fabAction()">+</button>
+
+<div class="modal-overlay" id="modal-event">
+  <div class="modal">
+    <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">✍️ 新增行程</div>
+    <div class="form-group"><label>所屬日期</label>
+      <select id="ev-date-select"></select>
+    </div>
+    <div class="form-group"><label>時間</label><input type="time" id="ev-time" value="10:00"></div>
+    <div class="form-group"><label>類型</label>
+      <select id="ev-type">
+        <option value="景點">🎡 景點</option><option value="餐廳">🍽️ 餐廳</option>
+        <option value="交通">🚂 交通</option><option value="住宿">🏨 住宿</option>
+      </select>
+    </div>
+    <div class="form-group"><label>地點名稱</label><input type="text" id="ev-name" placeholder="例：廣藏市場"></div>
+    <div class="form-group"><label>備註</label><textarea id="ev-note" rows="3" placeholder="例：必吃生拌牛肉"></textarea></div>
+    <div style="display:flex; gap:12px; margin-top: 24px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-event')">取消</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveEvent()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-expense">
+  <div class="modal">
+    <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">💵 新增花費</div>
+    <div class="form-group"><label>項目名稱</label><input type="text" id="exp-name" placeholder="例：Olive Young 彩妝"></div>
+    
+    <div class="form-group"><label>付款方式</label>
+      <div class="pill-group" id="exp-pay">
+        <button class="pill-btn" data-val="信用卡" onclick="selectPill('exp-pay', this)">信用卡</button>
+        <button class="pill-btn active" data-val="現金" onclick="selectPill('exp-pay', this)">現金</button>
+        <button class="pill-btn" data-val="行動支付" onclick="selectPill('exp-pay', this)">行動支付</button>
+      </div>
+    </div>
+    
+    <div class="form-group"><label>退稅狀態</label>
+      <div class="pill-group" id="exp-tax">
+        <button class="pill-btn active" data-val="未退稅" onclick="selectPill('exp-tax', this)">未退稅</button>
+        <button class="pill-btn" data-val="已退稅" onclick="selectPill('exp-tax', this)">已退稅</button>
+      </div>
+    </div>
+    
+    <div class="form-group"><label>金額</label>
+      <div style="display:flex; gap:8px;">
+         <select id="exp-currency" style="width: 120px;">
+            <option value="KRW">KRW (₩)</option>
+            <option value="TWD">TWD (NT$)</option>
+         </select>
+         <input type="number" id="exp-amount" placeholder="0" style="flex:1;">
+      </div>
+    </div>
+    <div style="display:flex; gap:12px; margin-top: 24px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-expense')">取消</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveExpense()">記帳</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal" style="text-align: center; padding: 32px 20px;">
+    <div style="font-size: 48px; margin-bottom: 16px;">🗑️</div>
+    <div style="font-size: 18px; font-weight: 700; margin-bottom: 24px; color: var(--text-main);">確定要刪除該項目嗎？</div>
+    <div style="display:flex; gap:12px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="cancelDelete()">取消</button>
+      <button class="btn btn-primary" style="flex:1; background: #FF3B30; box-shadow: 0 4px 12px rgba(255, 59, 48, 0.4);" onclick="confirmDelete()">確認刪除</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">提示訊息</div>
+
+<script>
+let currentDayTab = 'pre';
+let expPayMethod = '現金';
+let expTaxStatus = '未退稅'; 
+let sortableInstance = null; 
+
+const S = {
+  settings: { start: '2026-05-08', end: '2026-05-13', rate: 46.3, budget: 50000 },
+  events: [], 
+  expenses: [], 
+  page: 'home'
+};
+
+function loadData() {
+  try {
+    const ks = JSON.parse(localStorage.getItem('kr_s_v8')); if(ks) S.settings = ks;
+    S.events = JSON.parse(localStorage.getItem('kr_ev_v8')) || [];
+    S.expenses = JSON.parse(localStorage.getItem('kr_ex_v8')) || [];
+  } catch(e) {}
+}
+
+function saveData() {
+  localStorage.setItem('kr_s_v8', JSON.stringify(S.settings));
+  localStorage.setItem('kr_ev_v8', JSON.stringify(S.events));
+  localStorage.setItem('kr_ex_v8', JSON.stringify(S.expenses));
+}
+
+function goTo(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  S.page = p; 
+  document.getElementById('main-fab').style.display = (p === 'home') ? 'none' : 'flex';
+  
+  if (p === 'itinerary') {
+    // 當進入行程頁面時，確保目前的 Tab 有置中顯示
+    setTimeout(scrollToActiveTab, 100);
+  }
+  render();
+}
+
+function handleSettingsChange() {
+  saveSettings();
+  currentDayTab = 'pre';
+  generateDateTabs();
+}
+
+function saveSettings() {
+  S.settings.start = document.getElementById('trip-start').value;
+  S.settings.end = document.getElementById('trip-end').value;
+  S.settings.rate = parseFloat(document.getElementById('trip-rate').value) || 46.3;
+  saveData(); renderHome();
+}
+
+function getTripDays() {
+  const tabs = [{ id: 'pre', title: 'PRE TRIP', val: '事前事項' }];
+  if (S.settings.start && S.settings.end) {
+    const start = new Date(S.settings.start);
+    const end = new Date(S.settings.end);
+    let curr = new Date(start);
+    let dayNum = 1;
+    const wd = ['日','一','二','三','四','五','六'];
+    while(curr <= end) {
+      const yyyy = curr.getFullYear();
+      const mm = String(curr.getMonth()+1).padStart(2, '0');
+      const dd = String(curr.getDate()).padStart(2, '0');
+      const id = `${yyyy}-${mm}-${dd}`;
+      tabs.push({
+        id: id,
+        title: `DAY ${dayNum}`,
+        val: `${curr.getMonth()+1}/${curr.getDate()} (${wd[curr.getDay()]})`
+      });
+      curr.setDate(curr.getDate() + 1);
+      dayNum++;
+    }
+  }
+  return tabs;
+}
+
+function generateDateTabs() {
+  const tabsData = getTripDays();
+  const tabContainer = document.getElementById('itinerary-tabs');
+  const selectContainer = document.getElementById('ev-date-select');
+  
+  tabContainer.innerHTML = tabsData.map(d => `
+    <div class="date-tab ${d.id === currentDayTab ? 'active' : ''}" onclick="switchDayTab('${d.id}')">
+      <div class="tab-title">${d.title}</div>
+      <div class="tab-val">${d.val}</div>
+    </div>
+  `).join('');
+  
+  selectContainer.innerHTML = tabsData.map(d => `<option value="${d.id}">${d.title} - ${d.val}</option>`).join('');
+}
+
+// 修改點 1：增強狀態切換的視覺連動
+function switchDayTab(id) {
+  if (currentDayTab === id) return; // 避免重複渲染
+  currentDayTab = id;
+  generateDateTabs(); 
+  renderItinerary();
+  scrollToActiveTab(); // 讓選中的 Tab 滾動到可見範圍
+}
+
+// 幫助 Tabs 置中的小工具
+function scrollToActiveTab() {
+  const activeTab = document.querySelector('.date-tab.active');
+  if (activeTab) {
+    activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+}
+
+function render() {
+  if(S.page === 'home') renderHome();
+  if(S.page === 'itinerary') { generateDateTabs(); renderItinerary(); }
+  if(S.page === 'expense') renderExpense();
+}
+
+function renderHome() {
+  document.getElementById('trip-start').value = S.settings.start;
+  document.getElementById('trip-end').value = S.settings.end;
+  document.getElementById('trip-rate').value = S.settings.rate;
+
+  if(S.settings.start) {
+    const start = new Date(S.settings.start);
+    const now = new Date(); now.setHours(0,0,0,0);
+    const diff = Math.ceil((start - now) / 86400000);
+    document.getElementById('trip-date-display').textContent = `${S.settings.start} 啟程`;
+    
+    if(diff > 0) {
+      document.getElementById('countdown-num').textContent = diff;
+      document.getElementById('countdown-label').textContent = '天後出發';
+    } else if (diff === 0) {
+      document.getElementById('countdown-num').textContent = 'GO';
+      document.getElementById('countdown-label').textContent = '就是今天！';
+    } else {
+      document.getElementById('countdown-num').textContent = Math.abs(diff);
+      document.getElementById('countdown-label').textContent = '天前出發';
+    }
+  }
+}
+
+function renderItinerary() {
+  const list = document.getElementById('itinerary-list');
+  const empty = document.getElementById('itinerary-empty');
+  
+  // 這裡就是 .event-card 跟 #itinerary-tabs 的資料過濾連結點
+  const dayEvents = S.events.filter(e => e.date === currentDayTab);
+  
+  // 修改點 2：加入淡入動畫，讓資料替換時更有「切換」的連動感
+  list.style.animation = 'none'; 
+  setTimeout(() => list.style.animation = 'fadeIn 0.3s ease', 10);
+
+  if(!dayEvents.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  
+  list.innerHTML = dayEvents.map(ev => `
+    <div class="event-wrapper" data-id="${ev.id}">
+      <div class="delete-bg">🗑️</div>
+      <div class="event-card" data-type="${ev.type}">
+        <div class="event-time">${ev.time}</div>
+        <div class="event-body">
+          <div class="event-name">${ev.name}</div>
+          ${ev.note ? `<div class="event-note">${ev.note}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  if(sortableInstance) sortableInstance.destroy();
+  sortableInstance = new Sortable(list, {
+    delay: 150, 
+    delayOnTouchOnly: true,
+    fallbackTolerance: 5,
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    onEnd: function (evt) {
+      const items = Array.from(list.children).map(el => el.getAttribute('data-id'));
+      const currentDayItems = items.map(id => S.events.find(e => e.id === id));
+      S.events = S.events.filter(e => e.date !== currentDayTab).concat(currentDayItems);
+      saveData();
+    }
+  });
+}
+
+function renderExpense() {
+  const rate = S.settings.rate || 46.3;
+  const budget = S.settings.budget || 50000;
+  let totalTWD = 0;
+  
+  S.expenses.forEach(e => {
+    totalTWD += e.currency === 'KRW' ? (e.amount / rate) : e.amount;
+  });
+  totalTWD = Math.round(totalTWD);
+  
+  document.getElementById('budget-title').textContent = `預算 NT$ ${budget.toLocaleString()}`;
+  document.getElementById('budget-left').textContent = `剩餘 NT$ ${(budget - totalTWD).toLocaleString()}`;
+  document.getElementById('total-twd').textContent = `NT$ ${totalTWD.toLocaleString()}`;
+  document.getElementById('budget-fill').style.width = `${Math.min(100, (totalTWD / budget) * 100)}%`;
+
+  const list = document.getElementById('expense-list');
+  const empty = document.getElementById('expense-empty');
+  
+  if(!S.expenses.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  
+  list.innerHTML = [...S.expenses].reverse().map(e => {
+    const d_twd = e.currency === 'KRW' ? Math.round(e.amount / rate) : e.amount;
+    const d_krw = e.currency === 'KRW' ? e.amount : Math.round(e.amount * rate);
+    
+    let taxHtml = '';
+    if(e.taxStatus === '已退稅') taxHtml = `<span class="tax-badge tax-green">已退稅</span>`;
+    else taxHtml = `<span class="tax-badge tax-orange">未退稅</span>`;
+
+    return `
+    <div class="exp-item">
+      <div class="exp-info">
+        <div class="exp-title">${e.name}</div>
+        <div class="exp-meta">
+          <span>${e.payMethod}</span>
+          ${taxHtml}
+        </div>
+      </div>
+      <div>
+        <div class="exp-amount">NT$ ${d_twd.toLocaleString()}</div>
+        <div style="font-size:11px; color:var(--text-sub); text-align:right;">(₩ ${d_krw.toLocaleString()})</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// --- 核心手勢滑動邏輯 (無縫頁面切換 & 左滑刪除) ---
+let startX = 0, startY = 0;
+let itemToDelete = null;
+let cardToReset = null;
+
+document.addEventListener('touchstart', e => {
+  if (e.touches.length > 1 || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName)) return;
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+}, {passive: true});
+
+document.addEventListener('touchmove', e => {
+  if (!startX || !startY) return;
+  let moveX = e.touches[0].clientX;
+  let moveY = e.touches[0].clientY;
+  
+  if (Math.abs(moveX - startX) > Math.abs(moveY - startY) && Math.abs(moveX - startX) > 10) {
+    e.preventDefault(); 
+  }
+}, { passive: false });
+
+document.addEventListener('touchend', e => {
+  if (!startX || !startY) return;
+  let endX = e.changedTouches[0].clientX;
+  let endY = e.changedTouches[0].clientY;
+  let dx = endX - startX;
+  let dy = endY - startY;
+
+  if (Math.abs(dy) > Math.abs(dx) || Math.abs(dx) < 40) {
+    startX = 0; startY = 0;
+    return;
+  }
+
+  // 1. 左滑刪除 (僅限行程卡片)
+  let wrapper = e.target.closest('.event-wrapper');
+  if (wrapper && S.page === 'itinerary') {
+    let card = wrapper.querySelector('.event-card');
+    if (dx < -40) { 
+      card.style.transform = 'translateX(-80px)';
+      let eventId = wrapper.getAttribute('data-id');
+      setTimeout(() => { showCustomConfirm(eventId, card); }, 150);
+      startX = 0; startY = 0;
+      return;
+    } else if (dx > 40 && card.style.transform === 'translateX(-80px)') {
+      card.style.transform = 'translateX(0px)';
+      startX = 0; startY = 0;
+      return; 
+    }
+  }
+
+  // 修改點 3：#itinerary-date-area 扮演判斷橋樑
+  let isItineraryDateArea = e.target.closest('#itinerary-date-area');
+
+  // 向左滑動 (下一頁 / 下一天)
+  if (dx < -40) {
+    if (S.page === 'home') {
+      goTo('itinerary');
+    } else if (S.page === 'itinerary') {
+      if (isItineraryDateArea) {
+        // 在行程區塊內左滑：精準切換到下一天
+        const tabs = getTripDays();
+        const idx = tabs.findIndex(t => t.id === currentDayTab);
+        if (idx > -1 && idx < tabs.length - 1) {
+          switchDayTab(tabs[idx+1].id);
+        } else {
+          goTo('expense');
+        }
+      } else {
+        goTo('expense');
+      }
+    }
+  } 
+  
+  // 向右滑動 (上一頁 / 上一天)
+  else if (dx > 40) {
+    if (S.page === 'expense') {
+      goTo('itinerary');
+    } else if (S.page === 'itinerary') {
+      if (isItineraryDateArea) {
+        // 在行程區塊內右滑：精準切換到上一天
+        const tabs = getTripDays();
+        const idx = tabs.findIndex(t => t.id === currentDayTab);
+        if (idx > 0) {
+          switchDayTab(tabs[idx-1].id);
+        } else {
+          goTo('home');
+        }
+      } else {
+        goTo('home');
+      }
+    }
+  }
+
+  startX = 0; startY = 0;
+});
+
+// 自訂刪除彈窗功能
+function showCustomConfirm(id, cardNode) {
+  itemToDelete = id;
+  cardToReset = cardNode;
+  document.getElementById('modal-confirm').classList.add('open');
+}
+function cancelDelete() {
+  if (cardToReset) cardToReset.style.transform = 'translateX(0px)';
+  document.getElementById('modal-confirm').classList.remove('open');
+  itemToDelete = null; cardToReset = null;
+}
+function confirmDelete() {
+  if(itemToDelete) {
+    S.events = S.events.filter(e => e.id !== itemToDelete);
+    saveData(); renderItinerary(); showToast('已刪除');
+  }
+  document.getElementById('modal-confirm').classList.remove('open');
+  itemToDelete = null; cardToReset = null;
+}
+
+function selectPill(groupId, el) {
+  document.querySelectorAll(`#${groupId} .pill-btn`).forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if(groupId === 'exp-pay') expPayMethod = el.getAttribute('data-val');
+  if(groupId === 'exp-tax') expTaxStatus = el.getAttribute('data-val');
+}
+
+function fabAction() {
+  if (S.page === 'itinerary') {
+    document.getElementById('ev-date-select').value = currentDayTab;
+    document.getElementById('ev-name').value = '';
+    document.getElementById('ev-note').value = '';
+    openModal('modal-event');
+  } else if (S.page === 'expense') {
+    document.getElementById('exp-name').value = '';
+    document.getElementById('exp-amount').value = '';
+    openModal('modal-expense');
+  }
+}
+
+function saveEvent() {
+  const name = document.getElementById('ev-name').value.trim();
+  if(!name) { showToast('請填寫地點名稱'); return; }
+  
+  S.events.push({
+    id: Date.now().toString(),
+    date: document.getElementById('ev-date-select').value,
+    time: document.getElementById('ev-time').value,
+    type: document.getElementById('ev-type').value,
+    name: name,
+    note: document.getElementById('ev-note').value
+  });
+  saveData(); closeModal('modal-event'); 
+  switchDayTab(document.getElementById('ev-date-select').value); 
+}
+
+function saveExpense() {
+  const name = document.getElementById('exp-name').value.trim() || '未命名項目';
+  const amount = parseFloat(document.getElementById('exp-amount').value);
+  if(!amount) { showToast('請輸入金額'); return; }
+  
+  S.expenses.push({
+    id: Date.now().toString(),
+    name: name,
+    payMethod: expPayMethod,
+    taxStatus: expTaxStatus,
+    currency: document.getElementById('exp-currency').value,
+    amount: amount
+  });
+  saveData(); closeModal('modal-expense'); renderExpense();
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el => el.addEventListener('click', e => { if(e.target === el) el.classList.remove('open'); }));
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+loadData();
+goTo('home');
+</script>
+</body>
+</html>
