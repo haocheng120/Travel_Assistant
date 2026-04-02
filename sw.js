@@ -1,6 +1,6 @@
 const CACHE_NAME = 'korea-trip-v1';
 const ASSETS_TO_CACHE = [
-  './seoul-travel.html',
+  './index.html',
   './manifest.json',
   './static/img/korea.png'
 ];

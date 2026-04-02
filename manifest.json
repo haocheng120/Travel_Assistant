@@ -2,7 +2,7 @@
   "name": "Seoul Travel Assistant",
   "short_name": "Seoul TA",
   "description": "結合提醒事項、行程規劃與記帳功能的旅遊助手",
-  "start_url": "./seoul-travel.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f7f5f2",
   "theme_color": "#C8102E",
