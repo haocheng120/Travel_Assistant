@@ -47,7 +47,7 @@ body {
   touch-action: pan-y;
 }
 
-#app { padding-bottom: 32px; min-height: 100vh; overflow-x: hidden;}
+#app { padding-bottom: 32px; min-height: 100vh; min-height: 100dvh; overflow-x: hidden;}
 .page { display: none; padding: 0 20px 20px; max-width: 520px; margin: 0 auto; }
 .page.active { display: block; animation: fadeIn 0.3s ease; }
 
@@ -115,7 +115,7 @@ body {
 .drive-btn { background: var(--grid-color); color: var(--text-main); padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; width: 100%; margin-top: 8px; }
 
 /* 表單與通用元素 */
-input, select, textarea { font-family: var(--font); font-size: 14px; color: var(--text-main); background: var(--grid-color); border: 2px solid transparent; border-radius: 10px; padding: 12px; width: 100%; outline: none; transition: all 0.2s; }
+input, select, textarea {-webkit-appearance: none; appearance: none; font-family: var(--font); font-size: 14px; color: var(--text-main); background: var(--grid-color); border: 2px solid transparent; border-radius: 10px; padding: 12px; width: 100%; outline: none; transition: all 0.2s; }
 input:focus, select:focus, textarea:focus { border-color: var(--primary); background: var(--surface); }
 label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: block; margin-bottom: 6px; }
 .form-group { margin-bottom: 16px; }
@@ -700,16 +700,28 @@ function saveEvent() {
   const name = document.getElementById('ev-name').value.trim();
   if(!name) { showToast('請填寫地點名稱'); return; }
   
+  const targetDate = document.getElementById('ev-date-select').value;
+
   S.events.push({
     id: Date.now().toString(),
-    date: document.getElementById('ev-date-select').value,
+    date: targetDate,
     time: document.getElementById('ev-time').value,
     type: document.getElementById('ev-type').value,
     name: name,
     note: document.getElementById('ev-note').value
   });
-  saveData(); closeModal('modal-event'); 
-  switchDayTab(document.getElementById('ev-date-select').value); 
+  
+  saveData(); 
+  closeModal('modal-event'); 
+  
+  // 【修復更新邏輯】
+  if (currentDayTab === targetDate) {
+    // 如果新增的行程就是畫面上正在看的這一天，直接重繪列表
+    renderItinerary();
+  } else {
+    // 如果是加到別天，則執行切換天數（切換函式裡本身就會包含重繪）
+    switchDayTab(targetDate); 
+  }
 }
 
 function saveExpense() {
