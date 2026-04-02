@@ -43,15 +43,13 @@ body {
   background-size: 20px 20px;
   color: var(--text-main); 
   overflow-x: hidden;
-  overscroll-behavior-x: none;
-  touch-action: pan-y;
+  overscroll-behavior-x: none; /* 防止滑動觸發瀏覽器上一頁 */
+  touch-action: pan-y; /* 新增這行：強制封殺瀏覽器原生左右滑動 */
 }
 
-#app { padding-bottom: 32px; min-height: 100vh; min-height: 100dvh; overflow-x: hidden;}
+#app { padding-bottom: 32px; min-height: 100vh; overflow-x: hidden;}
 .page { display: none; padding: 0 20px 20px; max-width: 520px; margin: 0 auto; }
 .page.active { display: block; animation: fadeIn 0.3s ease; }
-
-/* 定義通用的淡入動畫，用於切換頁面與切換行程卡片 */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 /* 頂部 Header */
@@ -67,13 +65,13 @@ body {
 .hero-right .hero-num { font-size: 72px; font-weight: 700; line-height: 1; font-family: var(--font-serif); }
 .hero-right .hero-label { font-size: 12px; margin-top: 4px; opacity: 0.7; }
 
-/* 行程日期專屬觸控區塊：扮演橋樑角色 */
+/* 行程日期專屬觸控區塊 */
 #itinerary-date-area { padding-top: 4px; }
 
-/* 橫向滑動日期選單 (Tabs) */
-.date-tabs { display: flex; overflow-x: auto; gap: 12px; padding: 4px 0 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; margin: 0 -20px 16px; padding-left: 20px; padding-right: 20px; scroll-behavior: smooth; }
+/* 橫向滑動日期選單 */
+.date-tabs { display: flex; overflow-x: auto; gap: 12px; padding: 4px 0 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; margin: 0 -20px 16px; padding-left: 20px; padding-right: 20px; }
 .date-tabs::-webkit-scrollbar { display: none; }
-.date-tab { flex-shrink: 0; padding: 12px 16px; border-radius: 16px; background: var(--surface); border: 2px solid var(--border); text-align: center; scroll-snap-align: center; cursor: pointer; transition: all 0.2s; min-width: 90px; box-shadow: 2px 4px 12px rgba(0,0,0,0.02); }
+.date-tab { flex-shrink: 0; padding: 12px 16px; border-radius: 16px; background: var(--surface); border: 2px solid var(--border); text-align: center; scroll-snap-align: start; cursor: pointer; transition: all 0.2s; min-width: 90px; box-shadow: 2px 4px 12px rgba(0,0,0,0.02); }
 .date-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255, 183, 178, 0.4); }
 .tab-title { font-size: 11px; font-weight: 700; opacity: 0.8; margin-bottom: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
 .tab-val { font-size: 16px; font-weight: 700; font-family: var(--font-serif); }
@@ -115,7 +113,7 @@ body {
 .drive-btn { background: var(--grid-color); color: var(--text-main); padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; width: 100%; margin-top: 8px; }
 
 /* 表單與通用元素 */
-input, select, textarea {-webkit-appearance: none; appearance: none; font-family: var(--font); font-size: 14px; color: var(--text-main); background: var(--grid-color); border: 2px solid transparent; border-radius: 10px; padding: 12px; width: 100%; outline: none; transition: all 0.2s; }
+input, select, textarea { font-family: var(--font); font-size: 14px; color: var(--text-main); background: var(--grid-color); border: 2px solid transparent; border-radius: 10px; padding: 12px; width: 100%; outline: none; transition: all 0.2s; }
 input:focus, select:focus, textarea:focus { border-color: var(--primary); background: var(--surface); }
 label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: block; margin-bottom: 6px; }
 .form-group { margin-bottom: 16px; }
@@ -333,7 +331,7 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
 <script>
 let currentDayTab = 'pre';
 let expPayMethod = '現金';
-let expTaxStatus = '未退稅'; 
+let expTaxStatus = '未退稅'; // 預設未退稅，已移除"無"
 let sortableInstance = null; 
 
 const S = {
@@ -362,11 +360,6 @@ function goTo(p) {
   document.getElementById('page-' + p).classList.add('active');
   S.page = p; 
   document.getElementById('main-fab').style.display = (p === 'home') ? 'none' : 'flex';
-  
-  if (p === 'itinerary') {
-    // 當進入行程頁面時，確保目前的 Tab 有置中顯示
-    setTimeout(scrollToActiveTab, 100);
-  }
   render();
 }
 
@@ -423,21 +416,10 @@ function generateDateTabs() {
   selectContainer.innerHTML = tabsData.map(d => `<option value="${d.id}">${d.title} - ${d.val}</option>`).join('');
 }
 
-// 修改點 1：增強狀態切換的視覺連動
 function switchDayTab(id) {
-  if (currentDayTab === id) return; // 避免重複渲染
   currentDayTab = id;
   generateDateTabs(); 
   renderItinerary();
-  scrollToActiveTab(); // 讓選中的 Tab 滾動到可見範圍
-}
-
-// 幫助 Tabs 置中的小工具
-function scrollToActiveTab() {
-  const activeTab = document.querySelector('.date-tab.active');
-  if (activeTab) {
-    activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }
 }
 
 function render() {
@@ -473,14 +455,8 @@ function renderHome() {
 function renderItinerary() {
   const list = document.getElementById('itinerary-list');
   const empty = document.getElementById('itinerary-empty');
-  
-  // 這裡就是 .event-card 跟 #itinerary-tabs 的資料過濾連結點
   const dayEvents = S.events.filter(e => e.date === currentDayTab);
   
-  // 修改點 2：加入淡入動畫，讓資料替換時更有「切換」的連動感
-  list.style.animation = 'none'; 
-  setTimeout(() => list.style.animation = 'fadeIn 0.3s ease', 10);
-
   if(!dayEvents.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
   
@@ -499,7 +475,7 @@ function renderItinerary() {
 
   if(sortableInstance) sortableInstance.destroy();
   sortableInstance = new Sortable(list, {
-    delay: 150, 
+    delay: 150, // 0.15秒長按判定，保留網頁上下捲動能力
     delayOnTouchOnly: true,
     fallbackTolerance: 5,
     animation: 150,
@@ -519,6 +495,8 @@ function renderExpense() {
   let totalTWD = 0;
   
   S.expenses.forEach(e => {
+    // NT$ 1 = ₩ X (例如 46.3)
+    // 如果是韓幣，除以 46.3 就是台幣
     totalTWD += e.currency === 'KRW' ? (e.amount / rate) : e.amount;
   });
   totalTWD = Math.round(totalTWD);
@@ -571,11 +549,13 @@ document.addEventListener('touchstart', e => {
   startY = e.touches[0].clientY;
 }, {passive: true});
 
+// 🟢 請在這裡「新增」這段 touchmove 防護機制：
 document.addEventListener('touchmove', e => {
   if (!startX || !startY) return;
   let moveX = e.touches[0].clientX;
   let moveY = e.touches[0].clientY;
   
+  // 如果判斷是左右滑動 (水平移動距離大於垂直)，就強制阻止 Safari 原生的「回上一頁/下一頁」行為
   if (Math.abs(moveX - startX) > Math.abs(moveY - startY) && Math.abs(moveX - startX) > 10) {
     e.preventDefault(); 
   }
@@ -588,6 +568,7 @@ document.addEventListener('touchend', e => {
   let dx = endX - startX;
   let dy = endY - startY;
 
+  // 若垂直滑動幅度大於水平，或是滑動距離太短，不觸發水平行為
   if (Math.abs(dy) > Math.abs(dx) || Math.abs(dx) < 40) {
     startX = 0; startY = 0;
     return;
@@ -598,19 +579,21 @@ document.addEventListener('touchend', e => {
   if (wrapper && S.page === 'itinerary') {
     let card = wrapper.querySelector('.event-card');
     if (dx < -40) { 
+      // 向左滑: 拉出刪除背景並跳出確認視窗
       card.style.transform = 'translateX(-80px)';
       let eventId = wrapper.getAttribute('data-id');
       setTimeout(() => { showCustomConfirm(eventId, card); }, 150);
       startX = 0; startY = 0;
       return;
     } else if (dx > 40 && card.style.transform === 'translateX(-80px)') {
+      // 向右滑: 關閉刪除卡片
       card.style.transform = 'translateX(0px)';
       startX = 0; startY = 0;
       return; 
     }
   }
 
-  // 修改點 3：#itinerary-date-area 扮演判斷橋樑
+  // 2. 判斷觸控區域是否在「行程日期區塊」內
   let isItineraryDateArea = e.target.closest('#itinerary-date-area');
 
   // 向左滑動 (下一頁 / 下一天)
@@ -619,18 +602,21 @@ document.addEventListener('touchend', e => {
       goTo('itinerary');
     } else if (S.page === 'itinerary') {
       if (isItineraryDateArea) {
-        // 在行程區塊內左滑：精準切換到下一天
+        // 在行程區塊內左滑：切換到下一天
         const tabs = getTripDays();
         const idx = tabs.findIndex(t => t.id === currentDayTab);
         if (idx > -1 && idx < tabs.length - 1) {
           switchDayTab(tabs[idx+1].id);
         } else {
+          // 如果已經是最後一天，再左滑就跳轉記帳
           goTo('expense');
         }
       } else {
+        // 在非行程區塊(如Header)左滑：直接跳轉記帳
         goTo('expense');
       }
     }
+    // S.page === 'expense' (記帳頁面) 左滑被鎖死 (無動作)
   } 
   
   // 向右滑動 (上一頁 / 上一天)
@@ -639,18 +625,21 @@ document.addEventListener('touchend', e => {
       goTo('itinerary');
     } else if (S.page === 'itinerary') {
       if (isItineraryDateArea) {
-        // 在行程區塊內右滑：精準切換到上一天
+        // 在行程區塊內右滑：切換到上一天
         const tabs = getTripDays();
         const idx = tabs.findIndex(t => t.id === currentDayTab);
         if (idx > 0) {
           switchDayTab(tabs[idx-1].id);
         } else {
+          // 如果已經是第一天，再右滑就回到首頁
           goTo('home');
         }
       } else {
+        // 在非行程區塊(如Header)右滑：直接回首頁
         goTo('home');
       }
     }
+    // S.page === 'home' (首頁) 右滑被鎖死 (無動作)
   }
 
   startX = 0; startY = 0;
@@ -700,28 +689,16 @@ function saveEvent() {
   const name = document.getElementById('ev-name').value.trim();
   if(!name) { showToast('請填寫地點名稱'); return; }
   
-  const targetDate = document.getElementById('ev-date-select').value;
-
   S.events.push({
     id: Date.now().toString(),
-    date: targetDate,
+    date: document.getElementById('ev-date-select').value,
     time: document.getElementById('ev-time').value,
     type: document.getElementById('ev-type').value,
     name: name,
     note: document.getElementById('ev-note').value
   });
-  
-  saveData(); 
-  closeModal('modal-event'); 
-  
-  // 【修復更新邏輯】
-  if (currentDayTab === targetDate) {
-    // 如果新增的行程就是畫面上正在看的這一天，直接重繪列表
-    renderItinerary();
-  } else {
-    // 如果是加到別天，則執行切換天數（切換函式裡本身就會包含重繪）
-    switchDayTab(targetDate); 
-  }
+  saveData(); closeModal('modal-event'); 
+  switchDayTab(document.getElementById('ev-date-select').value); 
 }
 
 function saveExpense() {
