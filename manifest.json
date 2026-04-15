@@ -1,6 +1,6 @@
 {
   "name": "Seoul Travel Assistant",
-  "short_name": "Seoul Travel Assistant",
+  "short_name": "Seoul TA",
   "description": "結合提醒事項、行程規劃與記帳功能的旅遊助手",
   "start_url": "./index.html",
   "display": "standalone",
@@ -8,8 +8,16 @@
   "theme_color": "#C8102E",
   "icons": [
     {
-      "src": "static/img/banner.png",
-      "type": "image/png"
+      "src": "./app.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./app.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
