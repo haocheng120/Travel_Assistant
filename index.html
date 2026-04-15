@@ -1344,8 +1344,10 @@ function renderShopList() {
     <div class="shop-event-wrapper">
       <div class="shop-delete-bg">🗑️</div>
       <div class="shop-event-card ${item.checked ? 'checked' : ''}" data-shop-id="${item.id}">
-        <div class="shop-check"></div>
-        <div class="shop-main" onclick="toggleShopItem('${item.id}')">
+        
+        <div class="shop-check" onclick="toggleShopItem('${item.id}')" style="cursor: pointer;"></div>
+        
+        <div class="shop-main" onclick="toggleShopItem('${item.id}')" style="cursor: pointer;">
           <div class="shop-title">${item.text}</div>
           ${item.note ? `<div class="shop-note">${item.note}</div>` : ''}
         </div>
