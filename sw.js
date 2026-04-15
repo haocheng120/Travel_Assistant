@@ -2,7 +2,8 @@ const CACHE_NAME = 'korea-trip-v1';
 const ASSETS_TO_CACHE = [
   './index.html',
   './manifest.json',
-  './static/img/korea.png'
+  './static/img/banner.png',
+  
 ];
 
 // 安裝階段：快取靜態資源

@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FFB7B2">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Seoul TA">
+<title>Seoul Travel Assistant</title>
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Seoul%20Travel%20Assistant%22%2C%22short_name%22%3A%22Seoul%20TA%22%2C%22description%22%3A%22%E7%B5%90%E5%90%88%E6%8F%90%E9%86%92%E4%BA%8B%E9%A0%85%E3%80%81%E8%A1%8C%E7%A8%8B%E8%A6%8F%E5%8A%83%E8%88%87%E8%A8%98%E5%B8%B3%E5%8A%9F%E8%83%BD%E7%9A%84%E6%97%85%E9%81%8A%E5%8A%A9%E6%89%8B%22%2C%22start_url%22%3A%22.%2Findex.html%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f7f5f2%22%2C%22theme_color%22%3A%22%23C8102E%22%7D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇰🇷</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<style>
+:root {
+  --primary: #FFB7B2; 
+  --primary-dark: #E2958F;
+  --bg-color: #FDFBF7; 
+  --grid-color: #EFECE5;
+  --surface: #FFFFFF;
+  --text-main: #4A4643;
+  --text-sub: #8C867E;
+  --border: #E8E4DB;
+  
+  --color-attr: #B5EAD7; 
+  --color-rest: #FFDAC1; 
+  --color-trans: #C7CEEA; 
+  --color-hotel: #E2F0CB; 
+
+  --radius-lg: 20px;
+  --radius: 12px;
+  --font: 'Noto Sans TC', sans-serif;
+  --font-serif: 'Noto Serif TC', serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body { 
+  font-family: var(--font); 
+  background-color: var(--bg-color);
+  background-image: radial-gradient(var(--grid-color) 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+  color: var(--text-main); 
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
+}
+
+#app { padding-bottom: 32px; min-height: 100vh; min-height: 100dvh; overflow-x: hidden;}
+.page { display: none; padding: 0 20px 20px; max-width: 520px; margin: 0 auto; }
+.page.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.page-header { position: sticky; top: 0; z-index: 50; padding: 24px 0 16px; margin: 0 -20px; padding-left: 20px; padding-right: 20px; background: linear-gradient(to bottom, var(--bg-color) 80%, transparent); display: flex; align-items: flex-start; gap: 12px; }
+.page-title { font-family: var(--font-serif); font-size: 24px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+
+.photo-card { 
+  background-color: var(--surface); 
+  background-image: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8));
+                    /* url('static/img/banner.png');  */
+  background-size: cover;
+  background-position: center;
+  border-radius: var(--radius-lg); 
+  padding: 16px; 
+  border: 2px solid var(--border); 
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.03); 
+  margin-bottom: 16px; 
+  position: relative;
+  height: fit-content;
+} 
+
+.hero-card { 
+  background: linear-gradient(rgba(125, 125, 125, 0.5), rgba(125, 125, 125, 0.5));
+   /* url('static/img/banner.png');  */
+  background-size: cover;
+  background-position: center;
+  color: #fff; 
+  border: none; 
+  height: fit-content;
+} 
+.hero-left .hero-title { font-family: var(--font-serif); font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.hero-left .hero-date { font-size: 13px; opacity: 0.8; }
+.hero-right { text-align: right; max-height: max-content;min-height: min-content;}
+.hero-right .hero-num { font-size: 80px; font-weight: 700; line-height: 1; font-family: var(--font-serif); }
+.hero-right .hero-label { font-size: 12px; margin-top: 4px; opacity: 0.7; }
+
+#itinerary-date-area { padding-top: 4px; }
+
+.date-tabs { display: flex; overflow-x: auto; gap: 12px; padding: 4px 0 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; margin: 0 -20px 16px; padding-left: 20px; padding-right: 20px; scroll-behavior: smooth; }
+.date-tabs::-webkit-scrollbar { display: none; }
+.date-tab { flex-shrink: 0; padding: 12px 16px; border-radius: 16px; background: var(--surface); border: 2px solid var(--border); text-align: center; scroll-snap-align: center; cursor: pointer; transition: all 0.2s; min-width: 90px; box-shadow: 2px 4px 12px rgba(0,0,0,0.02); }
+.date-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255, 183, 178, 0.4); }
+.tab-title { font-size: 11px; font-weight: 700; opacity: 0.8; margin-bottom: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
+.tab-val { font-size: 16px; font-weight: 700; font-family: var(--font-serif); }
+
+.event-wrapper { position: relative; margin-bottom: 12px; border-radius: 16px; overflow: hidden; background: #FF3B30; }
+.delete-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 700; gap: 4px; }
+.event-card { background: var(--surface); border: 2px solid var(--border); border-radius: 16px; padding: 16px; display: flex; gap: 12px; position: relative; z-index: 1; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); cursor: grab; user-select: none; -webkit-user-select: none;}
+.event-card[data-type="景點"] { border-left: 6px solid var(--color-attr); }
+.event-card[data-type="餐廳"] { border-left: 6px solid var(--color-rest); }
+.event-card[data-type="交通"] { border-left: 6px solid var(--color-trans); }
+.event-card[data-type="住宿"] { border-left: 6px solid var(--color-hotel); }
+.event-time { font-size: 13px; font-weight: 700; color: var(--primary-dark); min-width: 44px; }
+.event-body { flex: 1; min-width: 0; pointer-events: none;} 
+.event-body a, .event-body button { pointer-events: auto; }
+.event-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.event-note { font-size: 13px; color: var(--text-sub); line-height: 1.5; margin-bottom: 4px; }
+.sortable-ghost .event-card { opacity: 0.7; transform: scale(0.98); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+
+/* 行前清單專屬樣式 */
+.checklist-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--border); }
+.checklist-item:last-child { border-bottom: none; }
+.checklist-checkbox { width: 20px; height: 20px; accent-color: var(--primary-dark); cursor: pointer; }
+.checklist-text { flex: 1; font-size: 14px; transition: all 0.2s; }
+.checklist-text.done { color: var(--text-sub); text-decoration: line-through; opacity: 0.6; }
+.checklist-del { background: none; border: none; font-size: 16px; color: #ff3b30; cursor: pointer; opacity: 0.4; padding: 4px; }
+.checklist-del:hover { opacity: 1; }
+
+.exp-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px dashed var(--border); }
+.exp-info { display: flex; flex-direction: column; gap: 4px; }
+.exp-title { font-size: 15px; font-weight: 700; }
+.exp-meta { font-size: 12px; color: var(--text-sub); display: flex; gap: 8px; align-items: center; }
+.exp-amount { font-size: 16px; font-weight: 700; text-align: right; }
+.tax-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
+.tax-green { background: #E8F5E9; color: #34C759; border: 1px solid #C8E6C9; }
+.tax-orange { background: #FFF3E0; color: #E65100; border: 1px solid #FFE0B2; }
+.pill-group { display: flex; gap: 8px; }
+.pill-btn { flex: 1; padding: 10px 0; border-radius: 8px; border: 2px solid transparent; background: var(--grid-color); color: var(--text-sub); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.pill-btn.active { background: var(--surface); border-color: var(--primary); color: var(--primary-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+.tool-section { background: var(--surface); border: 2px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+.tool-header { background: var(--grid-color); padding: 12px 16px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.tool-body { padding: 16px; }
+.info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; }
+.info-row span:last-child { font-weight: 700; text-align: right;}
+.emergency-btn { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #FFF5F5; border: 1px solid #FFE3E3; border-radius: 10px; color: #D63031; text-decoration: none; font-weight: 700; margin-bottom: 8px; }
+.drive-btn { background: var(--grid-color); color: var(--text-main); padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; width: 100%; margin-top: 8px; }
+
+input, select, textarea { -webkit-appearance: none; appearance: none; font-family: var(--font); font-size: 14px; color: var(--text-main); background: var(--grid-color); border: 2px solid transparent; border-radius: 10px; padding: 12px; width: 100%; outline: none; transition: all 0.2s; }
+input:focus, select:focus, textarea:focus { border-color: var(--primary); background: var(--surface); }
+label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: block; margin-bottom: 6px; }
+.form-group { margin-bottom: 16px; }
+.row { display: flex; gap: 12px; }
+.row > * { flex: 1; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 20px; border-radius: var(--radius); border: none; cursor: pointer; font-family: var(--font); font-size: 14px; font-weight: 700; transition: all 0.15s; }
+.btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(255, 183, 178, 0.4); }
+.btn-primary:active { transform: scale(0.96); background: var(--primary-dark); }
+.btn-ghost { background: var(--grid-color); color: var(--text-main); }
+
+.fab { position: fixed; right: 24px; bottom: 32px; width: 56px; height: 56px; border-radius: 28px; background: var(--text-main); color: #fff; border: none; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.15); z-index: 80; font-size: 28px; transition: transform 0.2s; }
+.fab:active { transform: scale(0.9); }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 200; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg-color); border-radius: 24px 24px 0 0; padding: 24px 20px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.toast { position: fixed; top: 40px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--text-main); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 700; z-index: 300; opacity: 0; transition: all 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.empty { text-align: center; padding: 48px 20px; color: var(--text-sub); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="page-home" class="page active">
+  <div class="page-header" style="justify-content: space-between; align-items: center;">
+    <div>
+      <div class="page-title">✨ 韓國旅行手帳</div>
+      <div style="font-size: 13px; color: var(--text-sub); margin-top: 4px;">Seoul Trip 2026</div>
+    </div>
+  </div>
+  
+  <div class="photo-card hero-card">
+    <div class="hero-left">
+      <div class="hero-title">準備出發！</div>
+      <div class="hero-date" id="trip-date-display">讀取中...</div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-num" id="countdown-num">-</div>
+      <div class="hero-label" id="countdown-label">Days Left</div>
+    </div>
+  </div>
+
+  <div class="photo-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <div style="font-weight: 700; display: flex; align-items: center; gap: 8px;">⚙️ 旅行基礎設定</div>
+    <div style="display: flex; gap: 8px;">
+      <button onclick="goTo('itinerary')" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 12px; font-size:18px; cursor:pointer;" title="每日行程">🗓️</button>
+      <button onclick="goTo('expense')" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 12px; font-size:18px; cursor:pointer;" title="旅費記帳">💸</button>
+    </div>
+    </div>
+    <div class="row">
+      <div class="form-group"><label>出發日期</label><input type="date" id="trip-start" onchange="handleSettingsChange()"></div>
+      <div class="form-group"><label>回程日期</label><input type="date" id="trip-end" onchange="handleSettingsChange()"></div>
+    </div>
+    <button class="btn btn-ghost" style="width:100%; margin-top:12px; color:#FF3B30; border: 1px solid #FFE3E3; background: #FFF5F5; font-size: 12px;" onclick="if(confirm('確定要清除所有行程與記帳資料嗎？這將會恢復到預設狀態喔！')){ localStorage.clear(); location.reload(); }">
+      🗑️ 清除所有自訂資料並重置
+    </button>
+  </div>
+
+  <div style="margin-top: 32px; margin-bottom: 16px; font-size: 18px; font-weight: 700; font-family: var(--font-serif);">🧰 必備工具箱</div>
+
+  <div class="tool-section">
+    <div class="tool-header">🛂 行前準備清單</div>
+    <div class="tool-body">
+      <div id="home-checklist"></div>
+      <div style="display:flex; gap:8px; margin-top:12px; border-top:1px dashed var(--border); padding-top:12px;">
+        <input type="text" id="new-check-item" placeholder="新增清單項目..." style="padding: 8px; flex:1;">
+        <button class="btn btn-primary" style="padding: 0 16px; border-radius:8px;" onclick="addCheckItem()">＋</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <div class="tool-header">🗺️ Naver Map 必備地標快搜</div>
+    <div class="tool-body" style="display:flex; flex-direction:column; gap:8px;">
+      <a href="https://map.naver.com/v5/search/명동거리" target="_blank" class="drive-btn" style="justify-content:flex-start; margin-top:0;">🛍️ 明洞商圈 (Myeong-dong)</a>
+      <a href="https://map.naver.com/v5/search/홍대입구" target="_blank" class="drive-btn" style="justify-content:flex-start; margin-top:0;">🛍️ 弘大商圈 (Hongdae)</a>
+      <a href="https://map.naver.com/v5/search/여의도 현대백화점" target="_blank" class="drive-btn" style="justify-content:flex-start; margin-top:0;">🏬 汝矣島現代百貨 (The Hyundai Seoul)</a>
+      <a href="https://map.naver.com/v5/search/경복궁" target="_blank" class="drive-btn" style="justify-content:flex-start; margin-top:0;">🏯 景福宮 / 西村 / 三清洞</a>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <div class="tool-header">💊 常用藥局 (中韓文/退稅)</div>
+    <div class="tool-body">
+      <div class="info-row" style="flex-direction:column; align-items:flex-start; gap:4px;">
+        <span style="font-weight:700; font-size: 14px;">弘益藥局 (홍익약국)</span>
+        <span style="color:var(--text-sub); text-align:left;">弘大站 8號出口 | 09:00-23:30 (全年無休)</span>
+        <a href="https://map.naver.com/v5/search/홍익약국" target="_blank" class="drive-btn" style="width:auto; padding:4px 12px; margin-top:2px;">Naver 導航</a>
+      </div>
+      <div class="info-row" style="flex-direction:column; align-items:flex-start; gap:4px; border:none; margin-bottom:0;">
+        <span style="font-weight:700; font-size: 14px;">明洞Myeong藥局 (명동명약국)</span>
+        <span style="color:var(--text-sub); text-align:left;">明洞商圈內 | 09:30-21:30</span>
+        <a href="https://map.naver.com/v5/search/명동명약국" target="_blank" class="drive-btn" style="width:auto; padding:4px 12px; margin-top:2px;">Naver 導航</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="tool-section">
+    <div class="tool-header">✈️ 航班資訊</div>
+    <div class="tool-body">
+      <div class="info-row"><span>去程航班</span><span>TW670 (德威)</span></div>
+      <div class="info-row"><span>起飛時間</span><span>05/08 17:00 (RMQ)</span></div>
+      <div class="info-row"><span>抵達時間</span><span>05/08 20:45 (ICN)</span></div>
+      <div class="info-row" style="border:none; margin-bottom:0;"><span>回程航班</span><span style="color:var(--primary-dark)">TW669 (13:55)</span></div>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <div class="tool-header">🏨 住宿資訊</div>
+    <div class="tool-body">
+      <div class="info-row"><span>飯店名稱</span><span>弘大住宿 (4층 411호)</span></div>
+      <div class="info-row"><span>入住日期</span><span>05/08 - 05/13</span></div>
+      <div class="info-row" style="border:none; margin-bottom:0;"><span>地址</span><span>서울 마포구 양화로 157</span></div>
+      <a href="https://map.naver.com/v5/search/서울 마포구 양화로 157" target="_blank" class="drive-btn">🚗 導航回飯店</a>
+    </div>
+  </div>
+
+  <div class="tool-section">
+    <div class="tool-header">🚨 緊急聯絡</div>
+    <div class="tool-body">
+      <a href="tel:112" class="emergency-btn"><span>🚓 警察局</span><span>112</span></a>
+      <a href="tel:119" class="emergency-btn"><span>🚑 消防與救護車</span><span>119</span></a>
+      <a href="tel:1330" class="emergency-btn" style="background: #F4F6F8; border-color: #E2E8F0; color: var(--text-main);"><span>🗣️ 韓國旅遊諮詢 (有中文)</span><span>1330</span></a>
+    </div>
+  </div>
+</div>
+
+<div id="page-itinerary" class="page">
+  <div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <div>
+        <div class="page-title">🗓️ 每日行程</div>
+        <div style="font-size: 12px; color: var(--text-sub); margin-top: 4px;">按住卡片即可拖拉排序，向左滑動刪除</div>
+      </div>
+      <button onclick="openMapModal()" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 12px; font-size:18px; cursor:pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.05);" title="路線總覽地圖">🗺️</button>
+    </div>
+  </div>
+  
+  <div id="itinerary-date-area">
+    <div class="date-tabs" id="itinerary-tabs"></div>
+    <div id="itinerary-list"></div>
+    <div id="itinerary-empty" class="empty" style="display:none"><div class="empty-icon">📂</div><div>該時段尚未新增行程</div></div>
+  </div>
+</div>
+
+<div id="page-expense" class="page">
+  <div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <div>
+        <div class="page-title">💸 旅費記帳</div>
+        <div style="font-size: 12px; color: var(--text-sub); margin-top: 4px;">掌握預算，買好買滿</div>
+      </div>
+      <button onclick="openFxModal()" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 12px; font-size:18px; cursor:pointer;" title="匯率換算參考">💱</button>
+    </div>
+  </div>
+
+  <div class="photo-card">
+    <div class="row" style="margin-bottom: 12px; gap: 8px;">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label style="font-size: 10px;">匯率 (1 TWD = ? KRW)</label>
+        <input type="number" id="exp-rate-input" step="0.1" oninput="updateFinancials()" style="padding: 8px;">
+      </div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <label style="font-size: 10px;">總預算 (NT$)</label>
+        <input type="number" id="exp-budget-input" oninput="updateFinancials()" style="padding: 8px;">
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 8px;">
+      <span id="budget-title">預算 NT$ 0</span>
+      <span id="budget-left">剩餘 NT$ 0</span>
+    </div>
+    <div style="height: 8px; background: var(--grid-color); border-radius: 4px; overflow: hidden; margin-bottom: 20px;">
+      <div id="budget-fill" style="height: 100%; background: var(--primary-dark); width: 0%; transition: width 0.3s;"></div>
+    </div>
+    <div style="text-align: center; margin-top: 16px;">
+      <div style="font-size: 13px; color: var(--text-sub);">已花費總計</div>
+      <div style="font-size: 32px; font-weight: 700; color: var(--primary-dark); margin: 4px 0; font-family: var(--font-serif);" id="total-twd">NT$ 0</div>
+    </div>
+  </div>
+  <div id="expense-list" style="padding: 0 8px;"></div>
+  <div id="expense-empty" class="empty" style="display:none"><div class="empty-icon">🧾</div><div>尚未新增任何花費</div></div>
+</div>
+
+</div>
+
+<button class="fab" id="main-fab" onclick="fabAction()">+</button>
+
+<div class="modal-overlay" id="modal-event">
+  <div class="modal">
+    <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">✍️ 新增行程</div>
+    <div class="form-group"><label>所屬日期</label>
+      <select id="ev-date-select"></select>
+    </div>
+    <div class="form-group"><label>時間</label><input type="time" id="ev-time" value="10:00"></div>
+    <div class="form-group"><label>類型</label>
+      <select id="ev-type">
+        <option value="景點">🎡 景點</option><option value="餐廳">🍽️ 餐廳</option>
+        <option value="交通">🚂 交通</option><option value="住宿">🏨 住宿</option>
+      </select>
+    </div>
+    <div class="form-group"><label>地點名稱</label><input type="text" id="ev-name" placeholder="例：廣藏市場"></div>
+    <div class="form-group"><label>備註</label><textarea id="ev-note" rows="3" placeholder="支援 HTML，例如可放入連結"></textarea></div>
+    <div style="display:flex; gap:12px; margin-top: 24px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-event')">取消</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveEvent()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-expense">
+  <div class="modal">
+    <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">💵 新增花費</div>
+    <div class="form-group"><label>項目名稱</label><input type="text" id="exp-name" placeholder="例：Olive Young 彩妝"></div>
+    
+    <div class="form-group"><label>付款方式</label>
+      <div class="pill-group" id="exp-pay">
+        <button class="pill-btn" data-val="信用卡" onclick="selectPill('exp-pay', this)">信用卡</button>
+        <button class="pill-btn active" data-val="現金" onclick="selectPill('exp-pay', this)">現金</button>
+        <button class="pill-btn" data-val="行動支付" onclick="selectPill('exp-pay', this)">行動支付</button>
+      </div>
+    </div>
+    
+    <div class="form-group"><label>退稅狀態</label>
+      <div class="pill-group" id="exp-tax">
+        <button class="pill-btn active" data-val="未退稅" onclick="selectPill('exp-tax', this)">未退稅</button>
+        <button class="pill-btn" data-val="已退稅" onclick="selectPill('exp-tax', this)">已退稅</button>
+      </div>
+    </div>
+    
+    <div class="form-group"><label>金額</label>
+      <div style="display:flex; gap:8px;">
+         <select id="exp-currency" style="width: 120px;">
+            <option value="KRW">KRW (₩)</option>
+            <option value="TWD">TWD (NT$)</option>
+         </select>
+         <input type="number" id="exp-amount" placeholder="0" style="flex:1;">
+      </div>
+    </div>
+    <div style="display:flex; gap:12px; margin-top: 24px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-expense')">取消</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveExpense()">記帳</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-fx">
+  <div class="modal" style="max-height: 85vh; display: flex; flex-direction: column;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <div style="font-size: 20px; font-weight: 700;">💱 匯率換算參考</div>
+      <button onclick="closeModal('modal-fx')" style="background:none; border:none; font-size:20px; cursor:pointer;">✖</button>
+    </div>
+    
+    <div style="font-size: 13px; color: var(--text-sub); margin-bottom: 16px; background: var(--grid-color); padding: 8px 12px; border-radius: 8px;" id="fx-current-rate">
+      讀取中...
+    </div>
+
+    <div class="form-group">
+      <label>手動快速試算 (韓元換台幣)</label>
+      <div style="display:flex; gap:8px; align-items:center;">
+         <input type="number" id="fx-quick-krw" placeholder="輸入韓元 ₩" oninput="calcQuickFx()" style="flex: 1;">
+         <span style="font-weight: 700; color: var(--text-sub);">➡</span>
+         <input type="text" id="fx-quick-twd" placeholder="台幣 NT$" readonly style="flex: 1; background: #FFF5F5; border-color: #FFE3E3; color: #D63031; font-weight: 700;">
+      </div>
+    </div>
+
+    <label style="margin-top: 8px;">常見金額對照表</label>
+    <div style="flex: 1; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px;">
+      <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px;">
+         <thead style="background: var(--grid-color); position: sticky; top: 0; z-index: 2;">
+            <tr>
+              <th style="padding: 10px; border-bottom: 1px solid var(--border);">韓元 (KRW)</th>
+              <th style="padding: 10px; border-bottom: 1px solid var(--border);">台幣 (TWD)</th>
+            </tr>
+         </thead>
+         <tbody id="fx-table-body">
+            </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal" style="text-align: center; padding: 32px 20px;">
+    <div style="font-size: 48px; margin-bottom: 16px;">🗑️</div>
+    <div style="font-size: 18px; font-weight: 700; margin-bottom: 24px; color: var(--text-main);">確定要刪除該項目嗎？</div>
+    <div style="display:flex; gap:12px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="cancelDelete()">取消</button>
+      <button class="btn btn-primary" style="flex:1; background: #FF3B30; box-shadow: 0 4px 12px rgba(255, 59, 48, 0.4);" onclick="confirmDelete()">確認刪除</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-map">
+  <div class="modal" style="max-height: 90vh; display: flex; flex-direction: column; background: #FAFAFA;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; position: sticky; top: 0; background: #FAFAFA; z-index: 10; padding-bottom: 8px; border-bottom: 1px dashed var(--border);">
+      <div style="font-size: 20px; font-weight: 700;">🗺️ 行程路線總覽</div>
+      <button onclick="closeModal('modal-map')" style="background:none; border:none; font-size:20px; cursor:pointer;">✖</button>
+    </div>
+    
+    <div style="font-size: 13px; color: var(--text-sub); margin-bottom: 16px;">
+      已為您依照時間排序，並以不同顏色標示每日行程。點擊按鈕即可查看 Naver Map 地圖位置。
+    </div>
+
+    <div id="map-route-list" style="flex: 1; overflow-y: auto; padding-right: 8px;">
+      </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">提示訊息</div>
+
+<script>
+let currentDayTab = null; // 初始化為 null，進入頁面時會自動抓第一天
+let expPayMethod = '現金';
+let expTaxStatus = '未退稅'; 
+let sortableInstance = null; 
+
+// 預設行前清單項目
+const defaultChecklist = [
+  { id: 'c1', text: '🛂 護照', done: false },
+  { id: 'c2', text: '📝 電子入境申報 (K-ETA / Q-CODE)', done: false },
+  { id: 'c3', text: '📱 手機 & 🌐 eSIM 設定', done: false },
+  { id: 'c4', text: '💵 台幣 & 💳 信用卡 (Wowpass)', done: false },
+  { id: 'c5', text: '🔋 行動電源 & 轉接頭', done: false },
+  { id: 'c6', text: '💊 常用感冒、腸胃藥物', done: false }
+];
+
+// 將 6 天的行程轉換為預設陣列資料 (包含 Naver Map 按鈕)
+const defaultEvents = [
+  { id: 'e1', date: '2026-05-08', time: '14:30', type: '交通', name: '臺中清泉崗機場', note: '出發前往首爾 (航班: TW670)<br><a href="https://map.naver.com/v5/search/타이중 국제공항" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e2', date: '2026-05-08', time: '20:50', type: '交通', name: '仁川國際機場', note: 'TW670 抵達、入境、提領行李，轉乘 AREX<br><a href="https://map.naver.com/v5/search/인천국제공항" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e3', date: '2026-05-08', time: '22:13', type: '住宿', name: '弘大住宿 (4층 411호)', note: '抵達住宿並辦理入住<br><a href="https://map.naver.com/v5/search/서울 마포구 양화로 157" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e4', date: '2026-05-09', time: '09:15', type: '餐廳', name: '倫敦貝果博物館 安國店', note: '排隊享用知名貝果<br><a href="https://map.naver.com/v5/search/런던베이글뮤지엄 안국점" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e5', date: '2026-05-09', time: '10:00', type: '景點', name: '北村韓屋村', note: '漫步傳統韓屋聚落<br><a href="https://map.naver.com/v5/search/북촌한옥마을" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e6', date: '2026-05-09', time: '12:59', type: '景點', name: '大使館換錢所', note: '明洞商圈兌換韓幣<br><a href="https://map.naver.com/v5/search/대사관앞환전" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e7', date: '2026-05-09', time: '14:52', type: '景點', name: '明洞商圈', note: '逛街購物、Daiso、Olive Young<br><a href="https://map.naver.com/v5/search/명동거리" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e8', date: '2026-05-09', time: '19:12', type: '餐廳', name: '新東宮馬鈴薯排骨湯', note: '晚餐：馬鈴薯排骨湯/烤排骨<br><a href="https://map.naver.com/v5/search/신동궁감자탕뼈숯불구이 을지로점" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e9', date: '2026-05-10', time: '08:44', type: '景點', name: '奉恩寺', note: '江南區古剎參拜<br><a href="https://map.naver.com/v5/search/봉은사" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e10', date: '2026-05-10', time: '09:59', type: '景點', name: 'COEX Mall', note: '星空圖書館與購物中心<br><a href="https://map.naver.com/v5/search/코엑스몰" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e11', date: '2026-05-10', time: '12:40', type: '餐廳', name: '廣藏市場', note: '午餐：在地傳統美食<br><a href="https://map.naver.com/v5/search/광장시장" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e12', date: '2026-05-10', time: '14:55', type: '景點', name: '東大門商圈', note: '逛街、DDP<br><a href="https://map.naver.com/v5/search/동대문" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e13', date: '2026-05-10', time: '20:03', type: '餐廳', name: '新村奶油燉排骨', note: '晚餐<br><a href="https://map.naver.com/v5/search/신촌 갈비찜" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e14', date: '2026-05-11', time: '08:11', type: '餐廳', name: 'Egg Drop 弘大店', note: '早餐<br><a href="https://map.naver.com/v5/search/에그드랍 홍대입구점" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e15', date: '2026-05-11', time: '09:32', type: '景點', name: '樂天世界', note: '主題樂園暢遊<br><a href="https://map.naver.com/v5/search/롯데월드" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e16', date: '2026-05-11', time: '15:35', type: '餐廳', name: '꿉당 (Ggupdang)', note: '人氣烤肉<br><a href="https://map.naver.com/v5/search/꿉당" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e17', date: '2026-05-11', time: '17:22', type: '景點', name: '樂天世界購物中心', note: '樂天周邊逛街<br><a href="https://map.naver.com/v5/search/롯데월드몰" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e18', date: '2026-05-12', time: '08:43', type: '景點', name: 'IAB STUDIO DOSAN', note: '潮牌逛街<br><a href="https://map.naver.com/v5/search/아이앱스튜디오 도산" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e19', date: '2026-05-12', time: '09:13', type: '景點', name: 'Supreme 首爾', note: '潮牌朝聖<br><a href="https://map.naver.com/v5/search/슈프림 서울" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e20', date: '2026-05-12', time: '11:13', type: '餐廳', name: 'Standard Bread', note: '人氣麵包店<br><a href="https://map.naver.com/v5/search/스탠다드브레드" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e21', date: '2026-05-12', time: '17:37', type: '景點', name: 'Musinsa Standard Seongsu', note: '韓國知名服飾品牌<br><a href="https://map.naver.com/v5/search/무신사 스탠다드 성수" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e22', date: '2026-05-12', time: '19:08', type: '景點', name: 'Human Made Seoul', note: '潮流服飾逛街<br><a href="https://map.naver.com/v5/search/휴먼메이드 서울" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e23', date: '2026-05-13', time: '09:03', type: '餐廳', name: '望遠市場', note: '做最後採買與享用小吃<br><a href="https://map.naver.com/v5/search/망원시장" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e24', date: '2026-05-13', time: '10:36', type: '住宿', name: '弘大住宿 (提取行李)', note: '返回住宿拿行李<br><a href="https://map.naver.com/v5/search/서울 마포구 양화로 157" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e25', date: '2026-05-13', time: '13:55', type: '交通', name: '仁川國際機場 (ICN)', note: '搭乘 TW669 班機起飛<br><a href="https://map.naver.com/v5/search/인천국제공항" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' },
+  { id: 'e26', date: '2026-05-13', time: '16:00', type: '交通', name: '臺中清泉崗機場', note: '抵達台灣，旅途圓滿結束<br><a href="https://map.naver.com/v5/search/타이중 국제공항" target="_blank" class="drive-btn" style="margin-top:6px; padding:6px 10px;">Naver 導航</a>' }
+];
+
+const S = {
+  settings: { start: '2026-05-08', end: '2026-05-13', rate: 46.3, budget: 50000 },
+  events: [], 
+  expenses: [],
+  checklist: [], 
+  page: 'home'
+};
+
+// 使用新版本儲存鍵 v9，確保清空舊的 PRE TRIP 影響
+function loadData() {
+  try {
+    const ks = JSON.parse(localStorage.getItem('kr_s_v9')); if(ks) S.settings = ks;
+    const savedEvents = JSON.parse(localStorage.getItem('kr_ev_v9'));
+    S.events = (savedEvents && savedEvents.length > 0) ? savedEvents : defaultEvents;
+    S.expenses = JSON.parse(localStorage.getItem('kr_ex_v9')) || [];
+    
+    // 讀取行前清單
+    const savedCheck = JSON.parse(localStorage.getItem('kr_ck_v9'));
+    S.checklist = savedCheck || defaultChecklist;
+  } catch(e) {}
+}
+
+function saveData() {
+  localStorage.setItem('kr_s_v9', JSON.stringify(S.settings));
+  localStorage.setItem('kr_ev_v9', JSON.stringify(S.events));
+  localStorage.setItem('kr_ex_v9', JSON.stringify(S.expenses));
+  localStorage.setItem('kr_ck_v9', JSON.stringify(S.checklist));
+}
+
+function goTo(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  S.page = p; 
+  document.getElementById('main-fab').style.display = (p === 'home') ? 'none' : 'flex';
+  
+  if (p === 'itinerary') {
+    // 若尚未選定天數，自動選定第一天
+    if (!currentDayTab) {
+      const days = getTripDays();
+      if (days.length > 0) currentDayTab = days[0].id;
+    }
+    setTimeout(scrollToActiveTab, 100);
+  }
+  render();
+}
+
+function handleSettingsChange() {
+  saveSettings();
+  const days = getTripDays();
+  if (days.length > 0) currentDayTab = days[0].id;
+  generateDateTabs();
+}
+
+function saveSettings() {
+  S.settings.start = document.getElementById('trip-start').value;
+  S.settings.end = document.getElementById('trip-end').value;
+  saveData(); 
+  renderHome();
+}
+
+// 移除 PRE TRIP 標籤，純粹生成日期天數
+function getTripDays() {
+  const tabs = [];
+  if (S.settings.start && S.settings.end) {
+    const start = new Date(S.settings.start);
+    const end = new Date(S.settings.end);
+    let curr = new Date(start);
+    let dayNum = 1;
+    const wd = ['日','一','二','三','四','五','六'];
+    while(curr <= end) {
+      const yyyy = curr.getFullYear();
+      const mm = String(curr.getMonth()+1).padStart(2, '0');
+      const dd = String(curr.getDate()).padStart(2, '0');
+      const id = `${yyyy}-${mm}-${dd}`;
+      tabs.push({
+        id: id,
+        title: `DAY ${dayNum}`,
+        val: `${curr.getMonth()+1}/${curr.getDate()} (${wd[curr.getDay()]})`
+      });
+      curr.setDate(curr.getDate() + 1);
+      dayNum++;
+    }
+  }
+  return tabs;
+}
+
+function generateDateTabs() {
+  const tabsData = getTripDays();
+  const tabContainer = document.getElementById('itinerary-tabs');
+  const selectContainer = document.getElementById('ev-date-select');
+  
+  tabContainer.innerHTML = tabsData.map(d => `
+    <div class="date-tab ${d.id === currentDayTab ? 'active' : ''}" onclick="switchDayTab('${d.id}')">
+      <div class="tab-title">${d.title}</div>
+      <div class="tab-val">${d.val}</div>
+    </div>
+  `).join('');
+  
+  selectContainer.innerHTML = tabsData.map(d => `<option value="${d.id}">${d.title} - ${d.val}</option>`).join('');
+}
+
+function switchDayTab(id) {
+  if (currentDayTab === id) return;
+  currentDayTab = id;
+  generateDateTabs(); 
+  renderItinerary();
+  scrollToActiveTab();
+}
+
+function scrollToActiveTab() {
+  const activeTab = document.querySelector('.date-tab.active');
+  if (activeTab) {
+    activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+}
+
+function render() {
+  if(S.page === 'home') renderHome();
+  if(S.page === 'itinerary') { generateDateTabs(); renderItinerary(); }
+  if(S.page === 'expense') renderExpense();
+}
+
+function renderHome() {
+  document.getElementById('trip-start').value = S.settings.start;
+  document.getElementById('trip-end').value = S.settings.end;
+
+  if(S.settings.start) {
+    const start = new Date(S.settings.start);
+    const now = new Date(); now.setHours(0,0,0,0);
+    const diff = Math.ceil((start - now) / 86400000);
+    document.getElementById('trip-date-display').textContent = `${S.settings.start} 啟程`;
+    
+    if(diff > 0) {
+      document.getElementById('countdown-num').textContent = diff;
+      document.getElementById('countdown-label').textContent = '天後出發';
+    } else if (diff === 0) {
+      document.getElementById('countdown-num').textContent = 'GO';
+      document.getElementById('countdown-label').textContent = '就是今天！';
+    } else {
+      document.getElementById('countdown-num').textContent = Math.abs(diff);
+      document.getElementById('countdown-label').textContent = '天前出發';
+    }
+  }
+  
+  renderChecklist();
+}
+
+// --- 行前清單專屬邏輯 ---
+function renderChecklist() {
+  const container = document.getElementById('home-checklist');
+  if (S.checklist.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-sub); font-size:12px; text-align:center; padding:10px;">目前清單是空的</div>';
+    return;
+  }
+  container.innerHTML = S.checklist.map(item => `
+    <div class="checklist-item">
+      <input type="checkbox" class="checklist-checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheckItem('${item.id}')">
+      <span class="checklist-text ${item.done ? 'done' : ''}">${item.text}</span>
+      <button class="checklist-del" onclick="deleteCheckItem('${item.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function addCheckItem() {
+  const input = document.getElementById('new-check-item');
+  const text = input.value.trim();
+  if (!text) return;
+  S.checklist.push({ id: 'c' + Date.now(), text: text, done: false });
+  input.value = ''; 
+  saveData(); 
+  renderChecklist();
+}
+
+function toggleCheckItem(id) {
+  const item = S.checklist.find(i => i.id === id);
+  if (item) { 
+    item.done = !item.done; 
+    saveData(); 
+    renderChecklist(); 
+  }
+}
+
+function deleteCheckItem(id) {
+  S.checklist = S.checklist.filter(i => i.id !== id);
+  saveData(); 
+  renderChecklist();
+}
+
+function renderItinerary() {
+  const list = document.getElementById('itinerary-list');
+  const empty = document.getElementById('itinerary-empty');
+  
+  const dayEvents = S.events.filter(e => e.date === currentDayTab);
+  
+  list.style.animation = 'none'; 
+  setTimeout(() => list.style.animation = 'fadeIn 0.3s ease', 10);
+
+  if(!dayEvents.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  
+  list.innerHTML = dayEvents.map(ev => `
+    <div class="event-wrapper" data-id="${ev.id}">
+      <div class="delete-bg">🗑️</div>
+      <div class="event-card" data-type="${ev.type}">
+        <div class="event-time">${ev.time}</div>
+        <div class="event-body">
+          <div class="event-name">${ev.name}</div>
+          ${ev.note ? `<div class="event-note">${ev.note}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  if(sortableInstance) sortableInstance.destroy();
+  sortableInstance = new Sortable(list, {
+    delay: 100, 
+    delayOnTouchOnly: true,
+    touchStartThreshold: 5,
+    filter: '.drive-btn, a, button', 
+    preventOnFilter: false,
+    fallbackTolerance: 5,
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    onEnd: function (evt) {
+      const items = Array.from(list.children).map(el => el.getAttribute('data-id'));
+      const currentDayItems = items.map(id => S.events.find(e => e.id === id));
+      S.events = S.events.filter(e => e.date !== currentDayTab).concat(currentDayItems);
+      saveData();
+    }
+  });
+}
+
+function updateFinancials() {
+  const rateInput = document.getElementById('exp-rate-input').value;
+  const budgetInput = document.getElementById('exp-budget-input').value;
+  
+  S.settings.rate = parseFloat(rateInput) || 46.3;
+  S.settings.budget = parseFloat(budgetInput) || 0;
+  
+  saveData();
+  renderExpense(); 
+}
+
+function renderExpense() {
+  const rate = S.settings.rate || 46.3;
+  const budget = S.settings.budget || 0;
+  document.getElementById('exp-rate-input').value = rate;
+  document.getElementById('exp-budget-input').value = budget;
+
+  let totalTWD = 0;
+  S.expenses.forEach(e => {
+    totalTWD += e.currency === 'KRW' ? (e.amount / rate) : e.amount;
+  });
+  totalTWD = Math.round(totalTWD);
+  
+  document.getElementById('budget-title').textContent = `預算 NT$ ${budget.toLocaleString()}`;
+  document.getElementById('budget-left').textContent = `剩餘 NT$ ${(budget - totalTWD).toLocaleString()}`;
+  document.getElementById('total-twd').textContent = `NT$ ${totalTWD.toLocaleString()}`;
+  document.getElementById('budget-fill').style.width = budget > 0 ? `${Math.min(100, (totalTWD / budget) * 100)}%` : '0%';
+
+  const list = document.getElementById('expense-list');
+  const empty = document.getElementById('expense-empty');
+  
+  if(!S.expenses.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  
+  list.innerHTML = [...S.expenses].reverse().map(e => {
+    const d_twd = e.currency === 'KRW' ? Math.round(e.amount / rate) : e.amount;
+    const d_krw = e.currency === 'KRW' ? e.amount : Math.round(e.amount * rate);
+    
+    let taxHtml = '';
+    if(e.taxStatus === '已退稅') taxHtml = `<span class="tax-badge tax-green">已退稅</span>`;
+    else taxHtml = `<span class="tax-badge tax-orange">未退稅</span>`;
+
+    return `
+    <div class="exp-item">
+      <div class="exp-info">
+        <div class="exp-title">${e.name}</div>
+        <div class="exp-meta">
+          <span>${e.payMethod}</span>
+          ${taxHtml}
+        </div>
+      </div>
+      <div>
+        <div class="exp-amount">NT$ ${d_twd.toLocaleString()}</div>
+        <div style="font-size:11px; color:var(--text-sub); text-align:right;">(₩ ${d_krw.toLocaleString()})</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// --- 觸控滑動邏輯 (已包含 Intervention 防護) ---
+let startX = 0, startY = 0;
+let itemToDelete = null;
+let cardToReset = null;
+
+document.addEventListener('touchstart', e => {
+  if (e.touches.length > 1 || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'A'].includes(e.target.tagName)) return;
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+}, {passive: true});
+
+document.addEventListener('touchmove', e => {
+  if (!startX || !startY) return;
+  let moveX = e.touches[0].clientX;
+  let moveY = e.touches[0].clientY;
+  
+  // 如果判斷是左右滑動，且支援取消，則阻止預設捲動
+  if (Math.abs(moveX - startX) > Math.abs(moveY - startY) && Math.abs(moveX - startX) > 10) {
+    if (e.cancelable) {
+      e.preventDefault(); 
+    }
+  }
+}, { passive: false });
+
+document.addEventListener('touchend', e => {
+  if (!startX || !startY) return;
+  let endX = e.changedTouches[0].clientX;
+  let endY = e.changedTouches[0].clientY;
+  let dx = endX - startX;
+  let dy = endY - startY;
+
+  if (Math.abs(dy) > Math.abs(dx) || Math.abs(dx) < 40) {
+    startX = 0; startY = 0;
+    return;
+  }
+
+  let wrapper = e.target.closest('.event-wrapper');
+  if (wrapper && S.page === 'itinerary') {
+    let card = wrapper.querySelector('.event-card');
+    if (dx < -40) { 
+      card.style.transform = 'translateX(-80px)';
+      let eventId = wrapper.getAttribute('data-id');
+      setTimeout(() => { showCustomConfirm(eventId, card); }, 150);
+      startX = 0; startY = 0;
+      return;
+    } else if (dx > 40 && card.style.transform === 'translateX(-80px)') {
+      card.style.transform = 'translateX(0px)';
+      startX = 0; startY = 0;
+      return; 
+    }
+  }
+
+  let isItineraryDateArea = e.target.closest('#itinerary-date-area');
+
+  if (dx < -40) {
+    if (S.page === 'home') {
+      goTo('itinerary');
+    } else if (S.page === 'itinerary') {
+      if (isItineraryDateArea) {
+        const tabs = getTripDays();
+        const idx = tabs.findIndex(t => t.id === currentDayTab);
+        if (idx > -1 && idx < tabs.length - 1) {
+          switchDayTab(tabs[idx+1].id);
+        } else {
+          goTo('expense');
+        }
+      } else {
+        goTo('expense');
+      }
+    }
+  } else if (dx > 40) {
+    if (S.page === 'expense') {
+      goTo('itinerary');
+    } else if (S.page === 'itinerary') {
+      if (isItineraryDateArea) {
+        const tabs = getTripDays();
+        const idx = tabs.findIndex(t => t.id === currentDayTab);
+        if (idx > 0) {
+          switchDayTab(tabs[idx-1].id);
+        } else {
+          goTo('home');
+        }
+      } else {
+        goTo('home');
+      }
+    }
+  }
+
+  startX = 0; startY = 0;
+});
+
+function showCustomConfirm(id, cardNode) {
+  itemToDelete = id;
+  cardToReset = cardNode;
+  document.getElementById('modal-confirm').classList.add('open');
+}
+function cancelDelete() {
+  if (cardToReset) cardToReset.style.transform = 'translateX(0px)';
+  document.getElementById('modal-confirm').classList.remove('open');
+  itemToDelete = null; cardToReset = null;
+}
+function confirmDelete() {
+  if(itemToDelete) {
+    S.events = S.events.filter(e => e.id !== itemToDelete);
+    saveData(); renderItinerary(); showToast('已刪除');
+  }
+  document.getElementById('modal-confirm').classList.remove('open');
+  itemToDelete = null; cardToReset = null;
+}
+
+function selectPill(groupId, el) {
+  document.querySelectorAll(`#${groupId} .pill-btn`).forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if(groupId === 'exp-pay') expPayMethod = el.getAttribute('data-val');
+  if(groupId === 'exp-tax') expTaxStatus = el.getAttribute('data-val');
+}
+
+function fabAction() {
+  if (S.page === 'itinerary') {
+    document.getElementById('ev-date-select').value = currentDayTab;
+    document.getElementById('ev-name').value = '';
+    document.getElementById('ev-note').value = '';
+    openModal('modal-event');
+  } else if (S.page === 'expense') {
+    document.getElementById('exp-name').value = '';
+    document.getElementById('exp-amount').value = '';
+    openModal('modal-expense');
+  }
+}
+
+function saveEvent() {
+  const name = document.getElementById('ev-name').value.trim();
+  if(!name) { showToast('請填寫地點名稱'); return; }
+
+  const targetDate = document.getElementById('ev-date-select').value;
+
+  S.events.push({
+    id: Date.now().toString(),
+    date: targetDate,
+    time: document.getElementById('ev-time').value,
+    type: document.getElementById('ev-type').value,
+    name: name,
+    note: document.getElementById('ev-note').value
+  });
+
+  saveData();
+  closeModal('modal-event');
+
+  currentDayTab = targetDate;
+  generateDateTabs();
+  renderItinerary();
+  setTimeout(scrollToActiveTab, 50);
+}
+
+function saveExpense() {
+  const name = document.getElementById('exp-name').value.trim() || '未命名項目';
+  const amount = parseFloat(document.getElementById('exp-amount').value);
+  if(!amount) { showToast('請輸入金額'); return; }
+  
+  S.expenses.push({
+    id: Date.now().toString(),
+    name: name,
+    payMethod: expPayMethod,
+    taxStatus: expTaxStatus,
+    currency: document.getElementById('exp-currency').value,
+    amount: amount
+  });
+  saveData(); closeModal('modal-expense'); renderExpense();
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el => el.addEventListener('click', e => { if(e.target === el) el.classList.remove('open'); }));
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// --- 匯率換算參考功能 ---
+function openFxModal() {
+  renderFxModal();
+  openModal('modal-fx');
+}
+
+function renderFxModal() {
+  const rate = S.settings.rate || 46.3; 
+  document.getElementById('fx-current-rate').innerHTML = `💡 目前基準：<strong>NT$ 1 = ₩ ${rate}</strong><br><span style="font-size:11px;">(可至記帳頁面修改)</span>`;
+
+  const amounts = [1000, 2000, 3000, 4000, 5000, 10000, 15000, 20000, 30000, 40000, 50000, 100000, 150000, 200000];
+  
+  const tbody = document.getElementById('fx-table-body');
+  tbody.innerHTML = amounts.map((krw, index) => {
+    const twd = Math.round(krw / rate);
+    const bg = index % 2 === 0 ? 'background: var(--surface);' : 'background: #FAFAFA;';
+    
+    return `<tr style="${bg} border-bottom: 1px dashed var(--border);">
+              <td style="padding: 12px; font-weight: 700; color: var(--text-main);">₩ ${krw.toLocaleString()}</td>
+              <td style="padding: 12px; font-weight: 700; color: var(--primary-dark);">NT$ ${twd.toLocaleString()}</td>
+            </tr>`;
+  }).join('');
+  
+  calcQuickFx(); 
+}
+
+function calcQuickFx() {
+  const krwInput = document.getElementById('fx-quick-krw').value;
+  const rate = S.settings.rate || 46.3;
+  if (krwInput && krwInput > 0) {
+    const twd = Math.round(parseFloat(krwInput) / rate);
+    document.getElementById('fx-quick-twd').value = `NT$ ${twd.toLocaleString()}`;
+  } else {
+    document.getElementById('fx-quick-twd').value = '';
+  }
+}
+
+// --- 🗺️ 路線地圖總覽功能 ---
+function openMapModal() {
+  const routeContainer = document.getElementById('map-route-list');
+  
+  if (S.events.length === 0) {
+    routeContainer.innerHTML = '<div class="empty" style="padding: 40px 0;"><div class="empty-icon">🗺️</div><div>目前還沒有任何行程可以顯示喔！</div></div>';
+    openModal('modal-map');
+    return;
+  }
+
+  let sortedEvents = [...S.events].sort((a, b) => {
+    if (a.date !== b.date) {
+      return a.date.localeCompare(b.date); 
+    }
+    return a.time.localeCompare(b.time);   
+  });
+
+  let uniqueDates = [...new Set(sortedEvents.map(e => e.date))];
+  
+  const dayColors = ['#FF9AA2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA', '#E0BBE4', '#FFB7B2'];
+
+  let html = '';
+  let globalIndex = 1; 
+
+  sortedEvents.forEach((ev, index) => {
+    let dayIndex = uniqueDates.indexOf(ev.date);
+    let nodeColor = dayColors[dayIndex % dayColors.length];
+    
+    let isLast = index === sortedEvents.length - 1;
+
+    html += `
+      <div style="display:flex; align-items:stretch; gap:16px;">
+        <div style="display:flex; flex-direction:column; align-items:center; width: 32px;">
+          <div style="width:32px; height:32px; border-radius:50%; background:${nodeColor}; color:#4A4643; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; z-index:2; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+            ${globalIndex}
+          </div>
+          ${!isLast ? `<div style="width:3px; flex:1; background:${nodeColor}; opacity:0.4; margin-top:4px; margin-bottom:4px; border-radius: 2px;"></div>` : `<div style="height: 16px;"></div>`}
+        </div>
+        
+        <div style="flex:1; padding-bottom: 24px;">
+          <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 4px;">
+            <span style="font-size:12px; font-weight:700; color:var(--text-sub); background: #EEEEEE; padding: 2px 8px; border-radius: 12px;">${ev.date}</span>
+            <span style="font-size:13px; font-family:var(--font-serif); color:var(--primary-dark); font-weight:700;">${ev.time}</span>
+          </div>
+          <div style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:8px;">${ev.name}</div>
+          
+          <a href="https://map.naver.com/v5/search/${encodeURIComponent(ev.name)}" target="_blank" style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:700; color:#03c75a; text-decoration:none; border:1px solid rgba(3,199,90,0.3); background: rgba(3,199,90,0.05); padding:6px 12px; border-radius:6px; transition:all 0.2s;">
+            🗺️ 尋找地圖位置
+          </a>
+        </div>
+      </div>
+    `;
+    globalIndex++;
+  });
+
+  routeContainer.innerHTML = html;
+  openModal('modal-map');
+}
+
+loadData();
+goTo('home');
+</script>
+</body>
+</html>
