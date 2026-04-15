@@ -927,6 +927,10 @@ function switchFlightTab(tab) {
 
 function renderChecklist() {
   const container = document.getElementById('home-checklist');
+  
+  // ✨ 加上這行防呆：如果畫面上沒有這個區塊，就直接結束函數，不要報錯
+  if (!container) return; 
+
   if (S.checklist.length === 0) {
     container.innerHTML = '<div style="color:var(--text-sub); font-size:12px; text-align:center; padding:10px;">目前清單是空的</div>';
     return;
