@@ -1266,34 +1266,36 @@ function renderItinerary() {
         ${!isLastItem ? `<div class="timeline-line"></div>` : ''}
       </div>
       
-      <div class="timeline-right" style="position: relative; padding: 8px 0 16px 12px; min-width: 0;">
+      <div class="timeline-right" style="padding: 8px 0 16px 12px; min-width: 0;">
         
         ${transitHtml}
 
-        <div class="edit-bg" style="position: absolute; left: 12px; top: ${transitHtml ? '36px' : '8px'}; bottom: 16px; width: 80px; border-radius: 16px; z-index: 0; background: #E8F5E9; display: flex; align-items: center; justify-content: center; font-size: 20px;">✏️</div>
-
-        <div class="delete-bg" style="position: absolute; right: 0; top: ${transitHtml ? '36px' : '8px'}; bottom: 16px; width: 80px; border-radius: 16px; z-index: 0; background: #FFEBEE; display: flex; align-items: center; justify-content: center; font-size: 20px;">🗑️</div>
-        
-        <div class="event-card timeline-card" data-type="${ev.type}" style="display: block; position: relative; z-index: 1; margin-bottom: 0; padding: 14px 14px 12px; border-left: none;">
-          <div class="timeline-card-name">${ev.name}</div>
-          ${ev.note ? `<div class="timeline-card-note">${ev.note}</div>` : ''}
+        <div style="position: relative; width: 100%;">
           
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
-            ${flightUrl ? `
-              <a href="${flightUrl}" target="_blank" class="naver-map-btn" style="background: #FFF9C4; border-color: #FFF176; color: #F57F17;">
-                ✈️ 航班資訊
-              </a>
-            ` : ''}
+          <div class="edit-bg" style="position: absolute; left: 0; top: 1px; bottom: 1px; width: 80px; border-radius: 16px; z-index: 0; background: #E8F5E9; display: flex; align-items: center; justify-content: center; font-size: 20px;">✏️</div>
 
-            ${showMapBtn ? `
-              <a href="https://map.naver.com/v5/search/${encoded}" target="_blank" class="naver-map-btn">
-                📍 NAVER MAP
-              </a>
-            ` : ''}
+          <div class="delete-bg" style="position: absolute; right: 0; top: 1px; bottom: 1px; width: 80px; border-radius: 16px; z-index: 0; background: #FFEBEE; display: flex; align-items: center; justify-content: center; font-size: 20px;">🗑️</div>
+          
+          <div class="event-card timeline-card" data-type="${ev.type}" style="display: block; position: relative; z-index: 1; margin-bottom: 0; padding: 14px 14px 12px; border-left: none;">
+            <div class="timeline-card-name">${ev.name}</div>
+            ${ev.note ? `<div class="timeline-card-note">${ev.note}</div>` : ''}
+            
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+              ${flightUrl ? `
+                <a href="${flightUrl}" target="_blank" class="naver-map-btn" style="background: #FFF9C4; border-color: #FFF176; color: #F57F17;">
+                  ✈️ 航班資訊
+                </a>
+              ` : ''}
+
+              ${showMapBtn ? `
+                <a href="https://map.naver.com/v5/search/${encoded}" target="_blank" class="naver-map-btn">
+                  📍 NAVER MAP
+                </a>
+              ` : ''}
+            </div>
           </div>
-        </div>
-        
-      </div>
+          
+        </div> </div>
     </div>
   `}).join('');
 
