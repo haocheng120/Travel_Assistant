@@ -121,6 +121,44 @@ body {
 .event-note { font-size: 13px; color: var(--text-sub); line-height: 1.5; margin-bottom: 4px; }
 .sortable-ghost .timeline-card { opacity: 0.7; transform: scale(0.98); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
 
+/* ✨ 首頁橫向膠囊選單樣式 ✨ */
+.home-menu-container { 
+  display: flex; overflow-x: auto; gap: 10px; padding: 4px 0 16px; 
+  margin: 0 0 16px; padding-left: 20px; padding-right: 20px; 
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; 
+}
+.home-menu-container::-webkit-scrollbar { display: none; }
+
+.home-menu-tab { 
+  display: inline-flex; align-items: center; gap: 6px; 
+  flex-shrink: 0; cursor: pointer; scroll-snap-align: center; 
+  background: var(--grid-color); /* 淺灰藍背景 */
+  color: var(--text-main); 
+  border: 1px solid transparent;
+  border-radius: 8px; 
+  padding: 8px 14px; 
+  font-size: 14px; 
+  font-weight: 700; 
+  transition: all 0.2s; 
+}
+
+/* 被選中(Active)時的樣式：變成微藍色底框 */
+.home-menu-tab.active { 
+  background: #F0F7FF; 
+  color: var(--primary-dark); 
+  border-color: #D6E8FF; 
+}
+
+/* 深色模式適配 */
+[data-theme='dark'] .home-menu-tab.active {
+  background: #1a2a4a;
+  color: #6ba4ff;
+  border-color: #2a4a8a;
+}
+
+.home-section { display: none; animation: fadeIn 0.3s ease; }
+.home-section.active { display: block; }
+
 /* 行前清單專屬樣式 */
 .checklist-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--border); }
 .checklist-item:last-child { border-bottom: none; }
@@ -349,8 +387,112 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
 .shop-upload-label { display:inline-flex; align-items:center; gap:6px; padding: 10px 12px; border: 2px solid var(--border); border-radius: 10px; background: var(--surface); font-size: 13px; font-weight: 700; color: var(--text-main); cursor:pointer; max-width: 58%; }
 .shop-upload-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight: 400; color: var(--text-sub); }
 .shop-add-btn { padding: 10px 16px; background: var(--primary); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; }
+
+/* ✨ 機票卡片專屬樣式 ✨ */
+.flight-ticket {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(30, 60, 114, 0.15);
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+  cursor: pointer;
+}
+.flight-ticket:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+/* 讓深色模式下的卡片也能完美融合 */
+[data-theme='dark'] .flight-ticket {
+  background: linear-gradient(135deg, #162a52 0%, #1d3a6e 100%);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+.flight-header {
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 1px;
+}
+.flight-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.flight-code {
+  font-size: 36px;
+  font-weight: 700;
+  font-family: var(--font-serif);
+  line-height: 1;
+}
+.flight-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: rgba(255,255,255,0.5);
+  padding: 0 10px;
+}
+.flight-arrow {
+  font-size: 20px;
+  margin-bottom: 2px;
+}
+.flight-duration {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+.flight-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.flight-footer-col {
+  display: flex;
+  flex-direction: column;
+}
+.flight-footer-col.right {
+  text-align: right;
+}
+.flight-time {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.flight-date {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+}
+
+/* ✨ Google Maps 動態導航按鈕樣式 ✨ */
+.transit-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e8f0ff;
+  color: var(--primary-dark);
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px dashed #a0c2ff;
+  transition: 0.2s;
+}
+.transit-link-btn:active { transform: scale(0.96); }
+[data-theme='dark'] .transit-link-btn {
+  background: #1a2a4a;
+  color: #6ba4ff;
+  border-color: #2a4a8a;
+}
+
 </style>
 </head>
+
 <body>
 <div id="app">
 <div class="page active" id="page-home">
@@ -390,7 +532,28 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
     </button>
   </div>
   
-  <div class="tool-section">
+  <div class="home-menu-container">
+    <div class="home-menu-tab active" onclick="switchHomeSection('shopping', this)">
+      <div class="home-menu-icon">🛍️</div><div class="home-menu-text">購物</div>
+    </div>
+    <div class="home-menu-tab" onclick="switchHomeSection('flight', this)">
+      <div class="home-menu-icon">✈️</div><div class="home-menu-text">航班</div>
+    </div>
+    <div class="home-menu-tab" onclick="switchHomeSection('hotel', this)">
+      <div class="home-menu-icon">🏨</div><div class="home-menu-text">住宿</div>
+    </div>
+    <div class="home-menu-tab" onclick="switchHomeSection('map', this)">
+      <div class="home-menu-icon">🗺️</div><div class="home-menu-text">地標</div>
+    </div>
+    <div class="home-menu-tab" onclick="switchHomeSection('pharmacy', this)">
+      <div class="home-menu-icon">💊</div><div class="home-menu-text">藥局</div>
+    </div>
+    <div class="home-menu-tab" onclick="switchHomeSection('emergency', this)">
+      <div class="home-menu-icon">🚨</div><div class="home-menu-text">緊急</div>
+    </div>
+  </div>
+
+  <div class="tool-section home-section active" id="section-shopping">
     <div class="tool-header">🛍️ 韓國購物清單</div>
     <div class="tool-body">
       <div class="shop-tabs" id="shop-category-tabs">
@@ -415,7 +578,7 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
     </div>
   </div>
 
-<div class="tool-section">
+<div class="tool-section home-section" id="section-flight">
     <div class="tool-header" style="justify-content: space-between;">
       <div>✈️ 航班資訊</div>
       <div style="display: flex; gap: 4px; background: var(--surface); padding: 3px; border-radius: 8px; border: 1px solid var(--border);">
@@ -424,31 +587,65 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
       </div>
     </div>
     <div class="tool-body" id="flight-content">
-      
-      <div id="flight-outbound" style="display: block; animation: fadeIn 0.3s ease;">
-        <div class="info-row"><span>航班編號</span><span>TW670 (德威航空)</span></div>
-        <div class="info-row"><span>起飛時間</span><span>05/08 17:00 (RMQ T2)</span></div>
-        <div class="info-row"><span>抵達時間</span><span>05/08 20:45 (ICN T1)</span></div>
-        <div class="info-row" style="border:none; margin-bottom:0; flex-direction: row; align-items: flex-start; gap: 8px;">
-          <span>航班狀態</span>
-          <a class="drive-btn" href="https://zh-tw.flightaware.com/live/flight/TWB670" target="_blank" style="margin-top:0; width:fit-content; padding: 6px 16px; background: #e8f0ff; color: var(--primary-dark); border: 1.5px solid #c5d8ff;">✈️ 查看去程即時動態</a>
+  
+  <div id="flight-outbound" style="display: block; animation: fadeIn 0.3s ease;">
+    <a href="https://zh-tw.flightaware.com/live/flight/TWB670" target="_blank" style="text-decoration: none; display: block;">
+      <div class="flight-ticket">
+        <div class="flight-header">✈️ T'WAY AIR • TW670</div>
+        <div class="flight-body">
+          <div class="flight-code">RMQ</div>
+          <div class="flight-center">
+            <div class="flight-arrow">➔</div>
+            <div class="flight-duration">2h 45m</div>
+          </div>
+          <div class="flight-code">ICN</div>
         </div>
-      </div>
-
-      <div id="flight-return" style="display: none; animation: fadeIn 0.3s ease;">
-        <div class="info-row"><span>航班編號</span><span>TW669 (德威航空)</span></div>
-        <div class="info-row"><span>起飛時間</span><span>05/13 13:55 (ICN T1)</span></div>
-        <div class="info-row"><span>抵達時間</span><span>05/13 16:00 (RMQ T2)</span></div>
-        <div class="info-row" style="border:none; margin-bottom:0; flex-direction: row; align-items: flex-start; gap: 8px;">
-          <span>航班狀態</span>
-          <a class="drive-btn" href="https://zh-tw.flightaware.com/live/flight/TWB669" target="_blank" style="margin-top:0; width:fit-content; padding: 6px 16px; background: #e8f0ff; color: var(--primary-dark); border: 1.5px solid #c5d8ff;">✈️ 查看回程即時動態</a>
+        <div class="flight-footer">
+          <div class="flight-footer-col">
+            <span class="flight-time">17:00</span>
+            <span class="flight-date">05/08 (T2)</span>
+          </div>
+          <div class="flight-footer-col right">
+            <span class="flight-time">20:45</span>
+            <span class="flight-date">05/08 (T1)</span>
+          </div>
         </div>
+        <div style="text-align: center; font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 10px;">點擊卡片查看即時航班動態</div>
       </div>
-
-    </div>
+    </a>
   </div>
 
-  <div class="tool-section">
+  <div id="flight-return" style="display: none; animation: fadeIn 0.3s ease;">
+    <a href="https://zh-tw.flightaware.com/live/flight/TWB669" target="_blank" style="text-decoration: none; display: block;">
+      <div class="flight-ticket">
+        <div class="flight-header">✈️ T'WAY AIR • TW669</div>
+        <div class="flight-body">
+          <div class="flight-code">ICN</div>
+          <div class="flight-center">
+            <div class="flight-arrow">➔</div>
+            <div class="flight-duration">3h 05m</div>
+          </div>
+          <div class="flight-code">RMQ</div>
+        </div>
+        <div class="flight-footer">
+          <div class="flight-footer-col">
+            <span class="flight-time">13:55</span>
+            <span class="flight-date">05/13 (T1)</span>
+          </div>
+          <div class="flight-footer-col right">
+            <span class="flight-time">16:00</span>
+            <span class="flight-date">05/13 (T2)</span>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 10px;">點擊卡片查看即時航班動態</div>
+      </div>
+    </a>
+  </div>
+
+  </div>
+  </div>
+
+  <div class="tool-section home-section" id="section-hotel">
     <div class="tool-header">🏨 住宿資訊</div>
     <div class="tool-body">
       <div class="info-row"><span>飯店名稱</span><span>弘大住宿 (4층 411호)</span></div>
@@ -458,7 +655,7 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
     </div>
   </div>
 
-  <div class="tool-section">
+  <div class="tool-section home-section" id="section-map">
     <div class="tool-header">🗺️ Naver Map 必備地標快搜</div>
     <div class="tool-body" style="display:flex; flex-direction:column; gap:8px;">
       <a class="drive-btn" href="https://map.naver.com/v5/search/명동거리" style="justify-content:flex-start; margin-top:0;" target="_blank">🛍️ 明洞商圈 (Myeong-dong)</a>
@@ -468,7 +665,7 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
     </div>
   </div>
 
-  <div class="tool-section">
+  <div class="tool-section home-section" id="section-pharmacy">
     <div class="tool-header">💊 常用藥局 (中韓文/退稅)</div>
     <div class="tool-body">
       <div class="info-row" style="flex-direction:column; align-items:flex-start; gap:4px;">
@@ -484,7 +681,7 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
     </div>
   </div>
 
-  <div class="tool-section">
+  <div class="tool-section home-section" id="section-emergency">
     <div class="tool-header">🚨 緊急聯絡</div>
     <div class="tool-body">
       <a class="emergency-btn" href="tel:112"><span>🚓 警察局</span><span>112</span></a>
@@ -496,17 +693,24 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
 
 <div class="page" id="page-itinerary">
   <div class="page-header">
-    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-      <div>
-        <div class="page-title">🗓️ 我的行程</div>
-        <div style="font-size: 12px; color: var(--text-sub); margin-top: 4px;">按住卡片即可拖拉排序，向左滑動刪除，向右滑動修改!</div>
-      </div>
-      <div style="display:flex; gap:8px;">
-        <button onclick="goTo('home')" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 12px; font-size:18px; cursor:pointer;">🏠</button>
-        <button onclick="openMapModal()" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 12px; font-size:18px; cursor:pointer;" title="路線總覽地圖">🗺️</button>
-      </div>
+  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    
+    <div>
+      <div class="page-title">🗓️ 我的行程</div>
+      <div style="font-size: 12px; color: var(--text-sub); margin-top: 4px;">按住拖拉排序，左滑刪除，右滑修改!</div>
     </div>
+
+    <div style="display:flex; gap:6px; align-items: center;">
+      <button id="btn-mode-transit" onclick="toggleTransitMode('transit')" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 8px; font-size:16px; cursor:pointer;" title="大眾運輸">🚌</button>
+      <button id="btn-mode-walking" onclick="toggleTransitMode('walking')" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 8px; font-size:16px; cursor:pointer;" title="步行">🚶</button>
+      <button id="btn-mode-driving" onclick="toggleTransitMode('driving')" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 8px; font-size:16px; cursor:pointer; margin-right: 4px;" title="汽車">🚗</button>
+      
+      <button onclick="goTo('home')" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 10px; font-size:16px; cursor:pointer;">🏠</button>
+      <button onclick="openMapModal()" style="background:var(--grid-color); border:none; border-radius:8px; padding:6px 10px; font-size:16px; cursor:pointer;" title="路線總覽地圖">🗺️</button>
+    </div>
+
   </div>
+</div>
   <div id="itinerary-date-area">
     <div class="date-tabs" id="itinerary-tabs"></div>
     <div id="itinerary-list"></div>
@@ -703,6 +907,29 @@ let expTaxStatus = '未退稅';
 let sortableInstance = null; 
 let editingEventId = null; 
 
+let activeTransitMode = null; // 記錄目前選擇的交通模式 ('transit', 'walking', 'driving')
+
+// ✨ 切換交通模式的邏輯
+function toggleTransitMode(mode) {
+  if (activeTransitMode === mode) activeTransitMode = null; // 再點一次可取消
+  else activeTransitMode = mode;
+
+  // 更新按鈕的視覺狀態 (反白)
+  ['transit', 'walking', 'driving'].forEach(m => {
+    const btn = document.getElementById(`btn-mode-${m}`);
+    if (btn) {
+      if (m === activeTransitMode) {
+        btn.style.background = 'var(--primary)';
+        btn.style.boxShadow = '0 2px 8px rgba(107,164,255,0.4)';
+      } else {
+        btn.style.background = 'var(--grid-color)';
+        btn.style.boxShadow = 'none';
+      }
+    }
+  });
+  renderItinerary(); // 重新渲染行程畫面
+}
+
 const defaultChecklist = [
   { id: 'c1', text: '🛂 護照', done: false },
   { id: 'c2', text: '📝 電子入境申報 (K-ETA / Q-CODE)', done: false },
@@ -807,6 +1034,21 @@ function goTo(p) {
     setTimeout(scrollToActiveTab, 100);
   }
   render();
+}
+
+// ✨ 首頁區塊切換邏輯
+function switchHomeSection(sectionId, element) {
+  // 1. 隱藏所有區塊，並移除 active 狀態
+  document.querySelectorAll('.home-section').forEach(el => el.classList.remove('active'));
+  // 2. 只顯示被點擊的目標區塊
+  document.getElementById('section-' + sectionId).classList.add('active');
+
+  // 3. 更新 Icon 列的樣式 (讓沒點到的變淡，點到的變亮)
+  document.querySelectorAll('.home-menu-tab').forEach(el => el.classList.remove('active'));
+  element.classList.add('active');
+  
+  // 4. 自動把點擊的 Icon 滑動到畫面中間
+  element.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 }
 
 function handleSettingsChange() {
@@ -983,22 +1225,38 @@ function renderItinerary() {
     const isLastItem = idx === dayEvents.length - 1;
     const encoded = encodeURIComponent(ev.name);
     
-    // 判斷是否為特定的機場行程
+    // 航班判斷邏輯保留
     const isFirstDay = currentDayTab === S.settings.start;
     const isLastDay = currentDayTab === S.settings.end;
-    
-    // 邏輯 1：第一天的清泉崗機場
     const isRMQFlight = isFirstDay && ev.name.includes('臺中清泉崗機場');
-    // 邏輯 2：最後一天的仁川機場
     const isICNFlight = isLastDay && ev.name.includes('仁川國際機場');
 
-    // 航班連結設定
     let flightUrl = null;
     if (isRMQFlight) flightUrl = "https://zh-tw.flightaware.com/live/flight/TWB670";
     if (isICNFlight) flightUrl = "https://zh-tw.flightaware.com/live/flight/TWB669";
-
-    // 地圖按鈕顯示判斷 (清泉崗不顯示地圖)
     const showMapBtn = !ev.name.includes('臺中清泉崗機場');
+
+    // ✨ 核心新增：自動生成 Google Maps 行程間導航區塊 ✨
+    let transitHtml = '';
+    if (activeTransitMode && idx > 0) {
+      const prevEv = dayEvents[idx - 1]; // 抓取上一站
+      const originStr = encodeURIComponent(prevEv.name); // 起點
+      const destStr = encodeURIComponent(ev.name);       // 終點
+      // 組合 Google Maps Directions API 網址
+      const gmUrl = `https://www.google.com/maps/dir/?api=1&origin=${originStr}&destination=${destStr}&travelmode=${activeTransitMode}`;
+
+      let modeIcon = '🚌', modeName = '大眾運輸';
+      if (activeTransitMode === 'walking') { modeIcon = '🚶'; modeName = '步行'; }
+      if (activeTransitMode === 'driving') { modeIcon = '🚗'; modeName = '汽車'; }
+
+      transitHtml = `
+        <div style="margin-bottom: 10px; margin-top: -4px;">
+          <a href="${gmUrl}" target="_blank" class="transit-link-btn">
+            ${modeIcon} Google Maps 導航 (${modeName})
+          </a>
+        </div>
+      `;
+    }
 
     return `
     <div class="timeline-item event-wrapper" data-id="${ev.id}">
@@ -1010,9 +1268,11 @@ function renderItinerary() {
       
       <div class="timeline-right" style="position: relative; padding: 8px 0 16px 12px; min-width: 0;">
         
-        <div class="edit-bg" style="position: absolute; left: 12px; top: 8px; bottom: 16px; width: 80px; border-radius: 16px; z-index: 0; background: #E8F5E9; display: flex; align-items: center; justify-content: center; font-size: 20px;">✏️</div>
+        ${transitHtml}
 
-        <div class="delete-bg" style="position: absolute; right: 0; top: 8px; bottom: 16px; width: 80px; border-radius: 16px; z-index: 0; background: #FFEBEE; display: flex; align-items: center; justify-content: center; font-size: 20px;">🗑️</div>
+        <div class="edit-bg" style="position: absolute; left: 12px; top: ${transitHtml ? '36px' : '8px'}; bottom: 16px; width: 80px; border-radius: 16px; z-index: 0; background: #E8F5E9; display: flex; align-items: center; justify-content: center; font-size: 20px;">✏️</div>
+
+        <div class="delete-bg" style="position: absolute; right: 0; top: ${transitHtml ? '36px' : '8px'}; bottom: 16px; width: 80px; border-radius: 16px; z-index: 0; background: #FFEBEE; display: flex; align-items: center; justify-content: center; font-size: 20px;">🗑️</div>
         
         <div class="event-card timeline-card" data-type="${ev.type}" style="display: block; position: relative; z-index: 1; margin-bottom: 0; padding: 14px 14px 12px; border-left: none;">
           <div class="timeline-card-name">${ev.name}</div>
@@ -1040,7 +1300,7 @@ function renderItinerary() {
   if(sortableInstance) sortableInstance.destroy();
   sortableInstance = new Sortable(list, {
     delay: 150, delayOnTouchOnly: true, touchStartThreshold: 5,
-    filter: '.naver-map-btn, a, button', preventOnFilter: false, fallbackTolerance: 5, animation: 150, ghostClass: 'sortable-ghost',
+    filter: '.transit-link-btn, .naver-map-btn, a, button', preventOnFilter: false, fallbackTolerance: 5, animation: 150, ghostClass: 'sortable-ghost',
     onEnd: function (evt) {
       const itemElements = Array.from(list.children);
       const newOrderedIds = itemElements.map(el => el.getAttribute('data-id'));
