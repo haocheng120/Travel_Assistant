@@ -498,9 +498,9 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
   background-position: center; 
   color: #fff; 
   /* 負邊距抵銷外層 padding，達成寬度 100% 視窗大小 */
-  margin: -16px -20px 0; 
-  padding: 24px 20px 80px; /* 增加頂部間距給標題，底部留空間給重疊卡片 */
-  min-height: 280px;
+  margin: -16px -20px -20px; 
+  padding: 36px 20px 80px; /* 增加頂部間距給標題，底部留空間給重疊卡片 */
+  min-height: 320px;
   display: flex; 
   flex-direction: column;
   justify-content: space-between; /* 讓標題區塊在上，倒數區塊在下 */
@@ -577,7 +577,7 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
   <div class="hero-banner">
     <div class="hero-header-row">
       <div>
-        <div class="hero-header-title">✨ 韓國旅行手帳</div>
+        <div class="hero-header-title">✨ Seoul Trip</div>
         <div class="hero-header-subtitle" id="trip-date-display">Seoul Trip 2026</div>
       </div>
       <button id="theme-btn" onclick="toggleTheme()" style="background: rgba(255,255,255,0.2); color:#fff; border:none; border-radius:50%; width:36px; height:36px; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(4px);">🌙</button>
