@@ -66,7 +66,6 @@ body {
 .page.active { display: block; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-.page-header { position: sticky; top: 0; z-index: 50; padding: 24px 0 16px; margin: 0 -20px; padding-left: 20px; padding-right: 20px; background: linear-gradient(to bottom, var(--bg-color) 80%, transparent); display: flex; align-items: flex-start; gap: 12px; }
 .page-title { font-family: var(--font-serif); font-size: 24px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
 
 .photo-card { 
@@ -490,21 +489,124 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
   border-color: #2a4a8a;
 }
 
+/* ✨ 1. 滿版背景橫幅：增加高度並垂直置中內容 ✨ */
+/* ✨ 1. 滿版背景橫幅：恢復原本的左右排版 ✨ */
+/* ✨ 合併型滿版橫幅樣式 ✨ */
+.hero-banner { 
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('static/img/banner.png');
+  background-size: cover; 
+  background-position: center; 
+  color: #fff; 
+  /* 負邊距抵銷外層 padding，達成寬度 100% 視窗大小 */
+  margin: -10px -75px 0; 
+  padding: 24px 20px 80px; /* 增加頂部間距給標題，底部留空間給重疊卡片 */
+  min-height: 280px;
+  display: flex; 
+  flex-direction: column;
+  justify-content: space-between; /* 讓標題區塊在上，倒數區塊在下 */
+  position: relative;
+}
+
+/* 橫幅內的標題列佈局 */
+.hero-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.hero-header-title {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.hero-header-subtitle {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+/* 橫幅內的倒數區塊佈局 (文字在上，數字在下) */
+.hero-countdown-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* 靠左對齊，若想置中可改 center */
+  width: 100%;
+}
+
+.hero-label { 
+  font-size: 13px; 
+  margin-bottom: 4px; /* 標籤與數字的距離 */
+  opacity: 0.9;
+  letter-spacing: 1px;
+}
+
+.hero-num { 
+  font-size: 42px; 
+  font-weight: 700; 
+  line-height: 1; 
+  font-family: var(--font-serif);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* 深色模式修正 */
+[data-theme='dark'] .hero-banner {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), url('static/img/banner.png');
+}
+
+/* ✨ 2. 重疊卡片樣式 ✨ */
+.overlap-card {
+  /* 負邊距是靈魂！它會把卡片「往上拉」，蓋在橫幅圖的上面 */
+  margin-top: -50px; 
+  position: relative; 
+  z-index: 10; 
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08); /* 加點陰影凸顯層次感 */
+}
+[data-theme='dark'] .overlap-card {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
 </style>
 </head>
 
 <body>
 <div id="app">
 <div class="page active" id="page-home">
-  <div class="page-header" style="justify-content: space-between; align-items: center;">
-    <div>
-      <div class="page-title">✨ 韓國旅行手帳</div>
-      <div style="font-size: 13px; color: var(--text-sub); margin-top: 4px;">Seoul Trip 2026</div>
+  <div class="hero-banner">
+    <div class="hero-header-row">
+      <div>
+        <div class="hero-header-title">✨ 韓國旅行手帳</div>
+        <div class="hero-header-subtitle" id="trip-date-display">Seoul Trip 2026</div>
+      </div>
+      <button id="theme-btn" onclick="toggleTheme()" style="background: rgba(255,255,255,0.2); color:#fff; border:none; border-radius:50%; width:36px; height:36px; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(4px);">🌙</button>
     </div>
-    <button id="theme-btn" onclick="toggleTheme()" style="background:var(--grid-color); color:var(--text-main); border:none; border-radius:50%; width:40px; height:40px; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">🌙</button>
+
+    <div class="hero-countdown-area">
+      <div class="hero-label" id="countdown-label">距離出發還有</div>
+      <div class="hero-num" id="countdown-num">00D 00:00:00</div>
+    </div>
   </div>
 
-  <div class="photo-card hero-card">
+  <div class="photo-card overlap-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <div style="font-weight: 700; display: flex; align-items: center; gap: 8px;">⚙️ 旅程日期</div>
+      <div style="display: flex; gap: 8px;">
+        <button onclick="goTo('itinerary')" style="background: var(--grid-color); color: var(--text-main);font-weight:700; border:1px solid var(--grid-color); border-radius:8px; padding:6px 12px; font-size:14px; cursor:pointer;">🗓️ 我的行程</button>
+        <button onclick="goTo('expense')" style=" background: var(--grid-color); color: var(--text-main);font-weight:700; border:1px solid var(--grid-color); border-radius:8px; padding:6px 12px; font-size:14px; cursor:pointer;">💸 旅費記帳</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group"><label>出發日期</label><input id="trip-start" onchange="handleSettingsChange()" type="date"/></div>
+      <div class="form-group"><label>回程日期</label><input id="trip-end" onchange="handleSettingsChange()" type="date"/></div>
+    </div>
+    <!-- <button class="btn btn-ghost" onclick="if(confirm('確定要清除所有行程與記帳資料嗎？這將會恢復到預設狀態喔！')){ localStorage.clear(); location.reload(); }" style="width:100%; margin-top:12px; font-size: 12px;">
+      🗑️ 清除所有自訂資料並重置
+    </button> -->
+  </div>
+
+  <!-- <div class="photo-card hero-card">
     <div class="hero-left">
       <div class="hero-title">準備出發！</div>
       <div class="hero-date" id="trip-date-display">讀取中...</div>
@@ -517,7 +619,7 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
 
   <div class="photo-card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <div style="font-weight: 700; display: flex; align-items: center; gap: 8px;">⚙️ 旅行基礎設定</div>
+      <div style="font-weight: 700; display: flex; align-items: center; gap: 8px;">⚙️ 旅程日期</div>
       <div style="display: flex; gap: 8px;">
         <button onclick="goTo('itinerary')" style="background: var(--grid-color); color: var(--text-main);font-weight:700; border:1px solid var(--grid-color); border-radius:8px; padding:6px 12px; font-size:14px; cursor:pointer;">🗓️ 我的行程</button>
         <button onclick="goTo('expense')" style=" background: var(--grid-color); color: var(--text-main);font-weight:700; border:1px solid var(--grid-color); border-radius:8px; padding:6px 12px; font-size:14px; cursor:pointer;">💸 旅費記帳</button>
@@ -530,7 +632,7 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
     <button class="btn btn-ghost" onclick="if(confirm('確定要清除所有行程與記帳資料嗎？這將會恢復到預設狀態喔！')){ localStorage.clear(); location.reload(); }" style="width:100%; margin-top:12px; font-size: 12px;">
       🗑️ 清除所有自訂資料並重置
     </button>
-  </div>
+  </div> -->
   
   <div class="home-menu-container">
     <div class="home-menu-tab active" onclick="switchHomeSection('shopping', this)">
@@ -1113,28 +1215,49 @@ function render() {
   if(S.page === 'expense') renderExpense();
 }
 
+let countdownTimer = null; // 用來存放計時器
+
 function renderHome() {
   document.getElementById('trip-start').value = S.settings.start;
   document.getElementById('trip-end').value = S.settings.end;
 
+  // 清除舊的計時器，避免重複執行
+  if (countdownTimer) clearInterval(countdownTimer);
+
   if(S.settings.start) {
-    const start = new Date(S.settings.start);
-    const now = new Date(); now.setHours(0,0,0,0);
-    const diff = Math.ceil((start - now) / 86400000);
-    document.getElementById('trip-date-display').textContent = `${S.settings.start} 啟程`;
+    // 預設出發時間為當天下午 17:00 (依照你的航班 TW670)
+    const targetDate = new Date(`${S.settings.start}T17:00:00`).getTime();
+    document.getElementById('trip-date-display').textContent = `${S.settings.start} 17:00 啟程`;
     
-    if(diff > 0) {
-      document.getElementById('countdown-num').textContent = diff;
-      document.getElementById('countdown-label').textContent = '天後出發';
-    } else if (diff === 0) {
-      document.getElementById('countdown-num').textContent = 'GO';
-      document.getElementById('countdown-label').textContent = '就是今天！';
-    } else {
-      document.getElementById('countdown-num').textContent = Math.abs(diff);
-      document.getElementById('countdown-label').textContent = '天前出發';
-    }
+    // 立即執行一次，然後設定每秒更新
+    updateCountdown(targetDate);
+    countdownTimer = setInterval(() => updateCountdown(targetDate), 1000);
   }
-  renderChecklist();
+}
+
+// ✨ 新增：精確到秒的倒數函數 ✨
+function updateCountdown(targetDate) {
+  const now = new Date().getTime();
+  const gap = targetDate - now;
+
+  const numEl = document.getElementById('countdown-num');
+  const labelEl = document.getElementById('countdown-label');
+
+  if (gap > 0) {
+    // 計算時分秒
+    const d = Math.floor(gap / (1000 * 60 * 60 * 24));
+    const h = Math.floor((gap % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((gap % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((gap % (1000 * 60)) / 1000);
+
+    // 格式化顯示： 03D 05:20:10
+    numEl.textContent = `${d}D ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    labelEl.textContent = '距離出發還有';
+  } else {
+    numEl.textContent = 'GO!';
+    labelEl.textContent = '旅程進行中 ✨';
+    if (countdownTimer) clearInterval(countdownTimer);
+  }
 }
 
 // ✨ 航班資訊去回程切換邏輯
@@ -1380,45 +1503,32 @@ document.addEventListener('touchmove', e => {
 
 document.addEventListener('touchend', e => {
   if (!startX || !startY) return;
-  let dx = e.changedTouches[0].clientX - startX; 
-  let dy = e.changedTouches[0].clientY - startY;
+  let dx = e.changedTouches[0].clientX - startX; let dy = e.changedTouches[0].clientY - startY;
 
   if (Math.abs(dy) > Math.abs(dx) || Math.abs(dx) < 40) { startX = 0; startY = 0; return; }
 
   let wrapper = e.target.closest('.event-wrapper');
   if (wrapper && S.page === 'itinerary') {
     let card = wrapper.querySelector('.event-card');
-    
     if (dx < -40) { 
-      // 【向左滑動：觸發刪除】
-      if (card.style.transform === 'translateX(80px)') {
-        card.style.transform = 'translateX(0px)'; // 復原右滑狀態
-      } else {
-        card.style.transform = 'translateX(-80px)';
-        setTimeout(() => { showCustomConfirm(wrapper.getAttribute('data-id'), card); }, 150);
-      }
-    } else if (dx > 40) { 
-      // 【向右滑動：觸發編輯】
-      if (card.style.transform === 'translateX(-80px)') {
-        card.style.transform = 'translateX(0px)'; // 復原左滑狀態
-      } else {
-        card.style.transform = 'translateX(80px)';
-        setTimeout(() => { 
-          editEvent(wrapper.getAttribute('data-id')); 
-          card.style.transform = 'translateX(0px)'; // 彈出編輯視窗後，卡片自動歸位
-        }, 200);
-      }
+      card.style.transform = 'translateX(-80px)';
+      setTimeout(() => { showCustomConfirm(wrapper.getAttribute('data-id'), card); }, 150);
+    } else if (dx > 40 && card.style.transform === 'translateX(-80px)') {
+      card.style.transform = 'translateX(0px)';
     }
     startX = 0; startY = 0; return;
   }
 
-  // 頁面左右滑動切換天數邏輯 (維持不變)
   let isItineraryDateArea = e.target.closest('#itinerary-date-area');
+  // ✨ 新增：判斷使用者的手指是不是滑在「購物卡片」上
+  let isShopCard = e.target.closest('.shop-event-card'); 
+
   if (dx < -40) {
     if (S.page === 'itinerary' && isItineraryDateArea) {
       const tabs = getTripDays(); const idx = tabs.findIndex(t => t.id === currentDayTab);
       if (idx > -1 && idx < tabs.length - 1) switchDayTab(tabs[idx+1].id);
-    } else if (isShopArea()) {
+    } else if (isShopArea() && !isShopCard) { 
+      // ✨ 修正：如果是滑動購物卡片，就【不要】切換分類！
       const tabs = ['pharmacy','myeongdong','hongdae','seongsu','supermarket'];
       const idx = tabs.findIndex(t => t === currentShopTab);
       if (idx > -1 && idx < tabs.length - 1) switchShopTab(tabs[idx+1]);
@@ -1427,7 +1537,8 @@ document.addEventListener('touchend', e => {
     if (S.page === 'itinerary' && isItineraryDateArea) {
       const tabs = getTripDays(); const idx = tabs.findIndex(t => t.id === currentDayTab);
       if (idx > 0) switchDayTab(tabs[idx-1].id);
-    } else if (isShopArea()) {
+    } else if (isShopArea() && !isShopCard) { 
+      // ✨ 修正：如果是滑動購物卡片，就【不要】切換分類！
       const tabs = ['pharmacy','myeongdong','hongdae','seongsu','supermarket'];
       const idx = tabs.findIndex(t => t === currentShopTab);
       if (idx > 0) switchShopTab(tabs[idx-1]);
@@ -1436,21 +1547,29 @@ document.addEventListener('touchend', e => {
   startX = 0; startY = 0;
 });
 
+// ✨ 修正：加入 type 參數，讓系統知道要刪除的是 行程(event) 還是 購物(shop)
 function showCustomConfirm(id, cardNode, type = 'event') { 
   itemToDelete = { id, type }; 
   cardToReset = cardNode; 
   openModal('modal-confirm'); 
 }
-function cancelDelete() { if (cardToReset) cardToReset.style.transform = 'translateX(0px)'; closeModal('modal-confirm'); itemToDelete = null; cardToReset = null; }
+
+function cancelDelete() { 
+  if (cardToReset) cardToReset.style.transform = 'translateX(0px)'; 
+  closeModal('modal-confirm'); 
+  itemToDelete = null; 
+  cardToReset = null; 
+}
+
 function confirmDelete() { 
   if(itemToDelete) { 
     if (itemToDelete.type === 'event') {
-      // 處理行程刪除
+      // 刪除行程
       S.events = S.events.filter(e => e.id !== itemToDelete.id); 
       saveData(); 
       renderItinerary(); 
     } else if (itemToDelete.type === 'shop') {
-      // 處理購物項目刪除
+      // ✨ 刪除購物清單
       shopData[currentShopTab] = (shopData[currentShopTab] || []).filter(i => i.id !== itemToDelete.id);
       saveShopData();
       renderShopList();
@@ -1653,18 +1772,13 @@ function bindShopSwipe() {
   document.querySelectorAll('.shop-event-card').forEach(card => {
     let sx = 0;
     card.ontouchstart = e => { sx = e.touches[0].clientX; };
-    card.ontouchmove = e => { 
-      const dx = e.touches[0].clientX - sx; 
-      // 限制左滑位移
-      if (dx < 0 && dx > -80) card.style.transform = `translateX(${dx}px)`; 
-    };
+    card.ontouchmove = e => { const dx = e.touches[0].clientX - sx; if (dx < 0 && dx > -80) card.style.transform = `translateX(${dx}px)`; };
     card.ontouchend = e => {
       const dx = e.changedTouches[0].clientX - sx; 
       const itemId = card.getAttribute('data-shop-id');
-      
       if (dx < -40) {
         card.style.transform = 'translateX(-80px)';
-        // ✨ 修改點：改用自定義確認視窗
+        // ✨ 改用自訂的美觀刪除視窗，並標記為 'shop' 類型
         setTimeout(() => { 
           showCustomConfirm(itemId, card, 'shop'); 
         }, 120);
