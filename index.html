@@ -167,7 +167,18 @@ body {
 .checklist-del { background: none; border: none; font-size: 16px; color: #ff3b30; cursor: pointer; opacity: 0.4; padding: 4px; }
 .checklist-del:hover { opacity: 1; }
 
-.exp-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px dashed var(--border); }
+/* ✨ 記帳清單專屬滑動卡片樣式 ✨ */
+/* ✨ 記帳清單專屬滑動卡片樣式 (改為僅有底線) ✨ */
+.exp-wrapper { position: relative; margin-bottom: 0; overflow: hidden; background: transparent; }
+.exp-card { 
+  display: flex; justify-content: space-between; align-items: center; 
+  background: var(--bg-color); /* 使用網頁背景色來遮蓋底下的按鈕 */
+  border: none; 
+  border-bottom: 1px dashed var(--border); /* 只保留下方虛線底線 */
+  border-radius: 0; /* 拿掉圓角 */
+  padding: 16px 8px; 
+  position: relative; z-index: 1; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+}
 .exp-info { display: flex; flex-direction: column; gap: 4px; }
 .exp-title { font-size: 15px; font-weight: 700; }
 .exp-meta { font-size: 12px; color: var(--text-sub); display: flex; gap: 8px; align-items: center; }
@@ -856,6 +867,18 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
       <div id="total-twd" style="font-size: 32px; font-weight: 700; color: var(--primary-dark); margin: 4px 0; font-family: var(--font-serif);">NT$ 0</div>
     </div>
   </div>
+  
+  <div style="display:flex; justify-content: space-between; align-items:center; margin: 16px 8px 12px;">
+    <div style="font-weight: 700; font-size: 14px;">🧾 消費明細</div>
+    <div style="display: flex; gap: 4px; background: var(--surface); padding: 3px; border-radius: 8px; border: 1px solid var(--border);" id="exp-filter-group">
+      <button onclick="setExpFilter('all', this)" style="background: var(--primary); color: #fff; border: none; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">全部</button>
+      <button onclick="setExpFilter('未退稅', this)" style="background: transparent; color: var(--text-sub); border: none; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">未退稅</button>
+      <button onclick="setExpFilter('已退稅', this)" style="background: transparent; color: var(--text-sub); border: none; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">已退稅</button>
+    </div>
+  </div>
+  
+  <div id="exp-filter-summary" style="text-align: right; font-size: 12px; color: var(--primary-dark); font-weight: 700; margin: 0 8px 12px; display: none;"></div>
+
   <div id="expense-list" style="padding: 0 8px;"></div>
   <div class="empty" id="expense-empty" style="display:none"><div class="empty-icon">🧾</div><div>尚未新增任何花費</div></div>
 </div>
@@ -886,7 +909,7 @@ label { font-size: 12px; font-weight: 700; color: var(--text-sub); display: bloc
 
 <div class="modal-overlay" id="modal-expense">
   <div class="modal">
-    <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">💵 新增花費</div>
+    <div id="modal-expense-title" style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">💵 新增花費</div>
     <div class="form-group"><label>項目名稱</label><input id="exp-name" placeholder="例：Olive Young 彩妝" type="text"/></div>
     <div class="form-group"><label>付款方式</label>
       <div class="pill-group" id="exp-pay">
@@ -1444,6 +1467,26 @@ function renderItinerary() {
   });
 }
 
+let currentExpFilter = 'all'; // 記錄當前的篩選狀態
+let editingExpId = null;      // 記錄目前正在編輯的記帳 ID
+
+// ✨ 記帳篩選器邏輯
+function setExpFilter(val, el) {
+  currentExpFilter = val;
+  // 1. 重置所有按鈕樣式變回透明
+  const buttons = document.querySelectorAll('#exp-filter-group button');
+  buttons.forEach(btn => {
+    btn.style.background = 'transparent';
+    btn.style.color = 'var(--text-sub)';
+  });
+  // 2. 讓被點擊的按鈕亮起
+  el.style.background = 'var(--primary)';
+  el.style.color = '#fff';
+  
+  // 3. 重新渲染清單
+  renderExpense();
+}
+
 function updateFinancials() {
   S.settings.rate = parseFloat(document.getElementById('exp-rate-input').value) || 46.3;
   S.settings.budget = parseFloat(document.getElementById('exp-budget-input').value) || 0;
@@ -1456,6 +1499,7 @@ function renderExpense() {
   document.getElementById('exp-rate-input').value = rate;
   document.getElementById('exp-budget-input').value = budget;
 
+  // 計算全域總花費 (用於進度條)
   let totalTWD = 0;
   S.expenses.forEach(e => { totalTWD += e.currency === 'KRW' ? (e.amount / rate) : e.amount; });
   totalTWD = Math.round(totalTWD);
@@ -1465,24 +1509,106 @@ function renderExpense() {
   document.getElementById('total-twd').textContent = `NT$ ${totalTWD.toLocaleString()}`;
   document.getElementById('budget-fill').style.width = budget > 0 ? `${Math.min(100, (totalTWD / budget) * 100)}%` : '0%';
 
+  // ✨ 依據篩選器過濾資料 (預設顯示全部)
+  const filteredExpenses = currentExpFilter === 'all' ? S.expenses : S.expenses.filter(e => e.taxStatus === currentExpFilter);
+
+  // 顯示篩選後的小計總額
+  const filterSummary = document.getElementById('exp-filter-summary');
+  if (currentExpFilter !== 'all') {
+    let subTWD = 0, subKRW = 0;
+    filteredExpenses.forEach(e => {
+      subTWD += e.currency === 'KRW' ? (e.amount / rate) : e.amount;
+      subKRW += e.currency === 'KRW' ? e.amount : (e.amount * rate);
+    });
+    filterSummary.style.display = 'block';
+    filterSummary.textContent = `${currentExpFilter}總計：NT$ ${Math.round(subTWD).toLocaleString()} (₩ ${Math.round(subKRW).toLocaleString()})`;
+  } else {
+    filterSummary.style.display = 'none';
+  }
+
   const list = document.getElementById('expense-list');
   const empty = document.getElementById('expense-empty');
-  if(!S.expenses.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  if(!filteredExpenses.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
   
-  list.innerHTML = [...S.expenses].reverse().map(e => {
+  // ✨ 渲染無邊框的滑動卡片
+  list.innerHTML = [...filteredExpenses].reverse().map(e => {
     const d_twd = e.currency === 'KRW' ? Math.round(e.amount / rate) : e.amount;
     const d_krw = e.currency === 'KRW' ? e.amount : Math.round(e.amount * rate);
     let taxHtml = e.taxStatus === '已退稅' ? `<span class="tax-badge tax-green">已退稅</span>` : `<span class="tax-badge tax-orange">未退稅</span>`;
     return `
-    <div class="exp-item">
-      <div class="exp-info"><div class="exp-title">${e.name}</div><div class="exp-meta"><span>${e.payMethod}</span>${taxHtml}</div></div>
-      <div>
-        <div class="exp-amount">NT$ ${d_twd.toLocaleString()}</div>
-        <div style="font-size:11px; color:var(--text-sub); text-align:right;">(₩ ${d_krw.toLocaleString()})</div>
+    <div class="exp-wrapper" data-id="${e.id}">
+      <div class="edit-bg" style="position: absolute; left: 0; top: 0; bottom: 0; width: 80px; z-index: 0; background: #E8F5E9; display: flex; align-items: center; justify-content: center; font-size: 20px;">✏️</div>
+      <div class="delete-bg" style="position: absolute; right: 0; top: 0; bottom: 0; width: 80px; z-index: 0; background: #FFEBEE; display: flex; align-items: center; justify-content: center; font-size: 20px;">🗑️</div>
+      <div class="exp-card">
+        <div class="exp-info"><div class="exp-title">${e.name}</div><div class="exp-meta"><span>${e.payMethod}</span>${taxHtml}</div></div>
+        <div>
+          <div class="exp-amount">NT$ ${d_twd.toLocaleString()}</div>
+          <div style="font-size:11px; color:var(--text-sub); text-align:right;">(₩ ${d_krw.toLocaleString()})</div>
+        </div>
       </div>
     </div>`;
   }).join('');
+}
+
+// ✨ 編輯記帳邏輯
+function editExpense(id) {
+  editingExpId = id;
+  const exp = S.expenses.find(e => e.id === id);
+  if (!exp) return;
+  
+  document.getElementById('modal-expense-title').textContent = '✏️ 修改花費';
+  document.getElementById('exp-name').value = exp.name;
+  document.getElementById('exp-amount').value = exp.amount;
+  document.getElementById('exp-currency').value = exp.currency || 'KRW';
+
+  // 自動切換付款與退稅按鈕狀態
+  const payBtn = document.querySelector(`#exp-pay .pill-btn[data-val="${exp.payMethod}"]`);
+  if (payBtn) selectPill('exp-pay', payBtn);
+  const taxBtn = document.querySelector(`#exp-tax .pill-btn[data-val="${exp.taxStatus}"]`);
+  if (taxBtn) selectPill('exp-tax', taxBtn);
+
+  openModal('modal-expense');
+}
+
+// ✨ 徹底修復：確保修改不會變成新增
+function saveExpense() {
+  const name = document.getElementById('exp-name').value.trim() || '未命名項目';
+  const amount = parseFloat(document.getElementById('exp-amount').value);
+  if(!amount) { showToast('請輸入金額'); return; }
+
+  // 判斷：如果有 editingExpId，代表是右滑進來的「編輯模式」
+  if (editingExpId) {
+    const exp = S.expenses.find(e => e.id === editingExpId);
+    if (exp) {
+      exp.name = name; 
+      exp.payMethod = expPayMethod; 
+      exp.taxStatus = expTaxStatus;
+      exp.currency = document.getElementById('exp-currency').value; 
+      exp.amount = amount;
+      showToast('修改成功！');
+    }
+    // 儲存完畢後清空 ID，避免下次新增也變成修改
+    editingExpId = null; 
+  } else {
+    // 否則就是按 + 號進來的「新增模式」
+    S.expenses.push({ id: 'ex_' + Date.now().toString(), name: name, payMethod: expPayMethod, taxStatus: expTaxStatus, currency: document.getElementById('exp-currency').value, amount: amount });
+    showToast('已新增一筆花費！');
+  }
+  
+  saveData(); 
+  closeModal('modal-expense'); 
+
+  // ✨ 自動切換回「全部」標籤並重新渲染 ✨
+  // 抓取篩選器群組裡面的「第一個按鈕」(也就是【全部】)
+  const allFilterBtn = document.querySelector('#exp-filter-group button:first-child');
+  
+  if (allFilterBtn) {
+    // 直接呼叫我們寫好的切換函數，它會自動幫我們改顏色並執行 renderExpense()
+    setExpFilter('all', allFilterBtn); 
+  } else {
+    renderExpense(); // 防呆機制
+  }
 }
 
 // 觸控邏輯 (含側滑刪除與分頁切換)
@@ -1515,6 +1641,31 @@ document.addEventListener('touchend', e => {
       setTimeout(() => { showCustomConfirm(wrapper.getAttribute('data-id'), card); }, 150);
     } else if (dx > 40 && card.style.transform === 'translateX(-80px)') {
       card.style.transform = 'translateX(0px)';
+    }
+    startX = 0; startY = 0; return;
+  }
+
+  // ✨ 新增：記帳卡片的左右滑動編輯與刪除
+  let expWrapper = e.target.closest('.exp-wrapper');
+  if (expWrapper && S.page === 'expense') {
+    let card = expWrapper.querySelector('.exp-card');
+    if (dx < -40) { 
+      if (card.style.transform === 'translateX(80px)') {
+        card.style.transform = 'translateX(0px)';
+      } else {
+        card.style.transform = 'translateX(-80px)';
+        setTimeout(() => { showCustomConfirm(expWrapper.getAttribute('data-id'), card, 'expense'); }, 150);
+      }
+    } else if (dx > 40) { 
+      if (card.style.transform === 'translateX(-80px)') {
+        card.style.transform = 'translateX(0px)';
+      } else {
+        card.style.transform = 'translateX(80px)';
+        setTimeout(() => { 
+          editExpense(expWrapper.getAttribute('data-id')); 
+          card.style.transform = 'translateX(0px)'; 
+        }, 200);
+      }
     }
     startX = 0; startY = 0; return;
   }
@@ -1574,6 +1725,11 @@ function confirmDelete() {
       saveShopData();
       renderShopList();
     }
+    else if (itemToDelete.type === 'expense') {
+      // ✨ 處理記帳刪除
+      S.expenses = S.expenses.filter(e => e.id !== itemToDelete.id);
+      saveData(); renderExpense();
+    }
     showToast('已刪除'); 
   } 
   closeModal('modal-confirm'); 
@@ -1592,6 +1748,8 @@ function fabAction() {
     document.getElementById('ev-note').value = '';
     openModal('modal-event');
   } else if (S.page === 'expense') {
+    editingExpId = null;  // ✨ 清除編輯狀態
+    document.getElementById('modal-expense-title').textContent = '💵 新增花費'; // ✨ 重置標題
     document.getElementById('exp-name').value = '';
     document.getElementById('exp-amount').value = '';
     openModal('modal-expense');
@@ -1629,14 +1787,6 @@ function saveEvent() {
   if (isEdit) {
     showToast('修改成功！');
   }
-}
-
-function saveExpense() {
-  const name = document.getElementById('exp-name').value.trim() || '未命名項目';
-  const amount = parseFloat(document.getElementById('exp-amount').value);
-  if(!amount) { showToast('請輸入金額'); return; }
-  S.expenses.push({ id: Date.now().toString(), name: name, payMethod: expPayMethod, taxStatus: expTaxStatus, currency: document.getElementById('exp-currency').value, amount: amount });
-  saveData(); closeModal('modal-expense'); renderExpense();
 }
 
 function openModal(id) { document.getElementById(id).classList.add('open'); }
