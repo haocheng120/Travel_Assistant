@@ -56,7 +56,13 @@
 
 ```text
 /
-├── index.html       # 主程式入口 (包含所有 UI 結構與邏輯)
-├── manifest.json    # PWA 設定檔 (定義 App 名稱、顯示模式)
-├── app-icon.png     # PWA 桌面圖示
-└── README.md        # 專案說明文件
+├── static/
+│   └── img/
+│       ├── app-icon.png     # PWA 桌面圖示
+│       ├── app.jpg          # 其他應用程式素材
+│       ├── banner.png       # 首頁滿版橫幅背景圖
+│       └── korea.png        # 預備使用的韓國相關圖片素材
+├── index.html       # 主程式入口 (包含所有 UI 結構與核心邏輯)
+├── manifest.json    # PWA 設定檔 (定義 App 名稱、主題色、顯示模式)
+├── README.md        # 專案說明文件
+└── sw.js            # Service Worker (處理資源快取，實現離線存取能力)
