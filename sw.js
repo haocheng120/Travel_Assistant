@@ -1,9 +1,9 @@
-const CACHE_NAME = 'korea-trip-v1';
+const CACHE_NAME = 'trip-v2';
 const ASSETS_TO_CACHE = [
   './index.html',
   './manifest.json',
-  './static/img/banner.png',
-  './static/img/app-icon.png',
+  './static/img/penghu-icon.jpg',
+  './static/img/penghu-icon.png',
   
 ];
 
