@@ -1428,13 +1428,13 @@ loadData();
 goTo('home');
 
 // 註冊 Service Worker（讓 sw.js 的快取與離線功能生效）
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(() => console.log('Service Worker 註冊成功'))
-      .catch(err => console.log('Service Worker 註冊失敗:', err));
-  });
-}
+// if ('serviceWorker' in navigator) {
+//   window.addEventListener('load', () => {
+//     navigator.serviceWorker.register('./sw.js')
+//       .then(() => console.log('Service Worker 註冊成功'))
+//       .catch(err => console.log('Service Worker 註冊失敗:', err));
+//   });
+// }
 </script>
 </body>
 </html>
